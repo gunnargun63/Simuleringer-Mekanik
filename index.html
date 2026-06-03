@@ -83,7 +83,7 @@
       transition: border-color 0.2s, color 0.2s;
     }
     .toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
-    header { margin-bottom: 56px; }
+    header { margin-bottom: 48px; }
     .label {
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.72rem;
@@ -92,46 +92,18 @@
       text-transform: uppercase;
       margin-bottom: 16px;
     }
-    .label::before { content: '{ '; }
-    .label::after  { content: ' }'; }
     h1 {
       font-size: clamp(1.8rem, 4vw, 2.8rem);
       font-weight: 700;
-      color: var(--text-head);
+      color: var(--accent);
       line-height: 1.15;
       letter-spacing: -0.01em;
       margin-bottom: 20px;
     }
-    h1 span { color: var(--accent); }
     .divider {
       height: 1px;
       background: linear-gradient(90deg, var(--accent) 0%, transparent 60%);
-      margin-bottom: 20px;
       opacity: 0.5;
-    }
-    .subtitle {
-      font-size: 1rem;
-      color: var(--text);
-      line-height: 1.7;
-      max-width: 580px;
-      opacity: 0.85;
-    }
-    .section-title {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin: 48px 0 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
     }
 
     .card-grid {
@@ -184,16 +156,29 @@
       opacity: 1;
       transform: translateX(0);
     }
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
     .card-title {
       font-size: 1rem;
       font-weight: 600;
       color: var(--text-head);
-      margin-bottom: 8px;
     }
+    .card-icon {
+      flex-shrink: 0;
+      display: flex;
+      color: var(--accent);
+    }
+    .card-icon svg { width: 22px; height: 22px; display: block; }
     .card-desc {
       font-size: 0.84rem;
       color: var(--text-dim);
       line-height: 1.5;
+      padding-right: 28px;
     }
     footer {
       margin-top: 72px;
@@ -219,27 +204,48 @@
   </div>
 
   <header>
-    <p class="label">Mekanik</p>
-    <h1>Simuleringer til<br><span>mekanik</span></h1>
+    <p class="label">Gymnasiefysik — Interaktive simuleringer</p>
+    <h1>Mekanik</h1>
     <div class="divider"></div>
   </header>
-
-  <p class="section-title">Simuleringer</p>
 
   <div class="card-grid">
 
     <a class="card" href="fald-med-luftmodstand_14.html">
-      <div class="card-title">Skydive</div>
+      <div class="card-head">
+        <div class="card-title">Skydive</div>
+        <span class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.5 10.5 Q 6 4 9.2 10.5 Q 12 4 14.8 10.5 Q 18 4 21.5 10.5"/>
+            <path d="M4 10.5 L 11.4 16"/>
+            <path d="M9.2 10.5 L 11.7 16"/>
+            <path d="M14.8 10.5 L 12.3 16"/>
+            <path d="M20 10.5 L 12.6 16"/>
+            <circle cx="12" cy="18" r="2"/>
+          </svg>
+        </span>
+      </div>
       <div class="card-desc">Frit fald med luftmodstand. Udforsk terminalhastighed, og se hvordan en udløst faldskærm bremser faldet.</div>
     </a>
 
-    <!-- Tilføj nye simuleringer her — kopier kort-blokken ovenfor og udfyld href, titel og beskrivelse.
+    <!-- Tilføj nye simuleringer her — kopier kort-blokken ovenfor, udfyld href, titel, beskrivelse og vælg et ikon.
          Filnavne skal være ASCII (ingen æ ø å). Kortene fylder automatisk gitteret ud to per række. -->
 
   </div>
 
-  <footer>Gunnar Gunnarsson · Koden må frit kopieres og genbruges</footer>
+  <footer>Gunnar Gunnarsson · Opdateret <span id="opdateret">juni 2026</span></footer>
 
 </div>
+
+<script>
+  (function () {
+    var maaneder = ['januar','februar','marts','april','maj','juni','juli','august',
+                    'september','oktober','november','december'];
+    var d = new Date(document.lastModified);
+    if (!isNaN(d.getTime())) {
+      document.getElementById('opdateret').textContent = maaneder[d.getMonth()] + ' ' + d.getFullYear();
+    }
+  })();
+</script>
 </body>
 </html>
