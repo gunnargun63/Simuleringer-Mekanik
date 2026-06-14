@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="da" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gnidning — Klods på bord</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* DARK (cyberpunk) — toggleable */
+  --bg0:#030810;--bg1:#060e18;--bg2:#0a1622;--bg3:#0f1e2d;
+  --border:#1a3a52;
+  --green:#00ff9f;--cyan:#00cfff;--yellow:#ffd93d;
+  --text:#d0eef5;--dim:#8ec8d8;
+  --font:'Courier New','Lucida Console',monospace;
+  --tr:0.15s ease;
+  --pull:#00cfff;   /* trækkraft cyan */
+  --fric:#ffd93d;   /* gnidning gul */
+  --norm:#00ff9f;   /* normalkraft grøn */
+  --grav:#c080ff;   /* tyngdekraft lilla */
+}
+[data-theme="light"]{
+  --bg0:#e8e0d2;--bg1:#f4eee3;--bg2:#fdfaf4;--bg3:#fdfaf4;
+  --border:#d6cbb8;
+  --green:#1D9E75;--cyan:#378ADD;--yellow:#c07800;
+  --text:#1a1a1a;--dim:#333333;
+  --pull:#1f6fc4;--fric:#a85f00;--norm:#147a4f;--grav:#7b3fa0;
+}
+[data-theme="light"] canvas{border-color:#d6cbb8}
+[data-theme="light"] h1{text-shadow:none}
+[data-theme="light"] .sec-title{color:#1D9E75;font-weight:700;border-bottom-color:#d6cbb8}
+[data-theme="light"] .mlabel{font-weight:700}
+[data-theme="light"] .explain-box p{color:#161616;font-weight:600}
+[data-theme="light"] .acc{color:#2767a8;font-weight:700}
+[data-theme="light"] .acc-y{color:#9c5e00;font-weight:700}
+[data-theme="light"] .acc-g{color:#147a59;font-weight:700}
+[data-theme="light"] .btn-sm{color:#1a1a1a;font-weight:700}
+[data-theme="light"] .btn-sm-util:hover{box-shadow:none;background:#e8f5ee}
+[data-theme="light"] .mat-btn.active{color:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg0);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:14px 18px 24px;gap:11px;min-height:100vh;transition:background .3s,color .3s}
+header{display:flex;align-items:baseline;gap:10px;width:100%;position:relative}
+.fric-icon{width:24px;height:24px;color:var(--yellow);flex-shrink:0;display:inline-flex}
+.fric-icon svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+[data-theme="light"] .fric-icon{color:#c07800}
+h1{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;
+  letter-spacing:.20em;color:var(--green);text-transform:uppercase}
+.subtitle{font-size:10px;color:var(--dim);letter-spacing:.12em}
+.header-btns{position:absolute;right:0;top:0;display:flex;gap:8px}
+.hbtn{font-family:var(--font);font-size:10px;
+  color:var(--dim);background:var(--bg2);border:1px solid var(--border);
+  padding:7px 12px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:var(--tr)}
+.hbtn:hover{color:var(--green);border-color:var(--green)}
+[data-theme="light"] .hbtn{color:#1a1a1a;font-weight:700}
+[data-theme="light"] .hbtn:hover{background:#e8f5ee}
+.main-row{display:flex;gap:10px;align-items:flex-start;width:100%;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.col1{width:380px}
+.col2{width:750px}
+.col3{width:262px}
+canvas{display:block;border:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+.box{background:var(--bg1);border:1px solid var(--border);padding:11px 12px;
+  display:flex;flex-direction:column;gap:8px}
+[data-theme="light"] .box{background:#fdfaf4}
+.sec-title{font-size:11px;letter-spacing:.22em;color:var(--green);
+  text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:5px}
+/* material selector */
+.mat-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mat-btn{font-family:var(--font);font-size:10px;letter-spacing:.04em;border:1px solid var(--border);
+  background:var(--bg3);color:var(--dim);padding:8px 5px;cursor:pointer;text-align:center;
+  transition:var(--tr);user-select:none;text-transform:uppercase;line-height:1.3}
+.mat-btn:hover{color:var(--text);border-color:var(--dim)}
+.mat-btn.active{background:var(--green);border-color:var(--green);color:var(--bg0);font-weight:700}
+.mat-sel{width:100%;font-family:var(--font);font-size:12px;font-weight:bold;background:var(--bg3);
+  color:var(--cyan);border:1px solid var(--border);padding:7px 8px;cursor:pointer;border-radius:2px;margin-top:4px}
+/* sliders */
+.slider-block{display:flex;flex-direction:column;gap:5px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline}
+.slider-name{font-size:10px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+.mu{text-transform:none}
+.slider-val{font-family:'Courier New',monospace;font-weight:bold;font-size:14px;color:var(--cyan);font-style:normal}
+.slider-val.locked{color:var(--dim)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:3px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:15px;height:15px;border-radius:50%;background:var(--green);cursor:pointer;border:none}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
+  background:var(--green);cursor:pointer;border:none}
+input[type=range]:disabled{opacity:.35;cursor:not-allowed}
+input[type=range]:disabled::-webkit-slider-thumb{background:var(--dim)}
+/* meters */
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.meter{background:var(--bg3);border:1px solid var(--border);padding:7px 9px;border-radius:2px}
+.mlabel{font-size:9px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+.mval{font-family:'Courier New',monospace;font-weight:bold;font-size:16px;color:var(--cyan);margin-top:2px;line-height:1.15}
+.mval small{font-size:12px;color:var(--dim);font-weight:bold}
+.mval.state-static{color:var(--green)}
+.mval.state-moving{color:var(--yellow)}
+.mval.state-end{color:var(--grav)}
+/* action buttons */
+.btn-sm{font-family:var(--font);font-size:10px;letter-spacing:.08em;border:1px solid var(--border);
+  background:var(--bg3);color:var(--dim);padding:7px 8px;cursor:pointer;
+  text-transform:uppercase;transition:var(--tr);user-select:none}
+.btn-sm:hover{color:var(--green);border-color:var(--green);box-shadow:0 0 8px var(--green)}
+[data-theme="light"] .btn-sm:hover{box-shadow:none;background:#e8f5ee}
+.btn-sm.on{color:var(--green);border-color:var(--green)}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.btn-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.explain-box p{font-size:11px;color:var(--text);line-height:1.65;letter-spacing:.02em}
+.explain-box p+p{margin-top:6px}
+.acc{color:var(--cyan);font-weight:bold}
+.acc-y{color:var(--yellow);font-weight:bold}
+.acc-g{color:var(--green);font-weight:bold}
+.footer{font-size:9px;color:var(--dim);letter-spacing:.06em;margin-top:4px;width:100%;text-align:right}
+.hint-p{font-size:10px;color:var(--text);line-height:1.5;letter-spacing:.01em;margin-bottom:2px}
+[data-theme="light"] .hint-p{color:#0a0a0a;font-weight:600}
+[data-theme="light"] .slider-name{color:#1a1a1a;font-weight:700}
+.meas-table{width:100%;border-collapse:collapse;font-family:'Courier New',monospace;font-size:11px;margin-top:2px}
+.meas-table th{font-size:10px;letter-spacing:.04em;color:var(--dim);
+  border-bottom:1px solid var(--border);padding:3px 4px;text-align:right}
+.meas-table th:first-child{text-align:center;width:22px}
+.meas-table th:last-child{width:20px}
+.meas-table td{padding:3px 4px;text-align:right;color:var(--text);font-weight:bold;border-bottom:1px solid var(--bg3)}
+.meas-table td:first-child{text-align:center;color:var(--dim);font-weight:normal}
+[data-theme="light"] .meas-table td{color:#161616}
+.meas-del{cursor:pointer;color:var(--dim);font-weight:bold;padding:0 3px}
+.meas-del:hover{color:var(--yellow)}
+.meas-empty{font-size:10px;color:var(--dim);font-style:italic;padding:6px 2px;text-align:center}
+.meas-status{font-size:10px;line-height:1.4;min-height:14px;padding:2px 0;letter-spacing:.01em}
+.meas-status.ok{color:var(--green);font-weight:bold}
+.meas-status.warn{color:var(--yellow);font-weight:bold}
+[data-theme="light"] .meas-status.ok{color:#147a4f}
+[data-theme="light"] .meas-status.warn{color:#9c5e00}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg0)}
+::-webkit-scrollbar-thumb{background:var(--border)}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="fric-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+    <rect x="3" y="11" width="9" height="7"/>
+    <path d="M14 14.5h6m-2.5-2.5l2.5 2.5-2.5 2.5"/>
+    <path d="M2 20h20"/>
+    <path d="M3 22l1-2M7 22l1-2M11 22l1-2M15 22l1-2M19 22l1-2"/>
+  </svg></span>
+  <h1>Gnidning &mdash; Klods p&aring; bord</h1>
+  <span class="subtitle">STATISK &middot; DYNAMISK &middot; COULOMBS LOV</span>
+  <div class="header-btns">
+    <button class="hbtn" id="copyBtn" onclick="copyCode()">&#10697; Kopier kode</button>
+    <button class="hbtn" id="themeBtn" onclick="toggleTheme()">&#9790; M&oslash;rk tilstand</button>
+  </div>
+</header>
+
+<div class="main-row">
+
+  <div class="col col1">
+    <canvas id="graph" width="380" height="370"></canvas>
+    <div class="box">
+      <div class="sec-title">Styring</div>
+      <div class="btn-grid">
+        <button class="btn-sm on" id="playBtn" onclick="togglePlay()">&#10074;&#10074; Pause</button>
+        <button class="btn-sm" onclick="resetSim()">&#8634; Nulstil</button>
+      </div>
+    </div>
+    <div class="box">
+      <div class="sec-title">M&aring;leserie &mdash; F<sub>tr&aelig;k</sub>(m)</div>
+      <p class="hint-p">Tr&aelig;k klodsen hen over bordet med konstant fart og slip. Tryk <b>Registr&eacute;r</b> for at gemme m&aring;lingen (masse + gennemsnitlig tr&aelig;kkraft i glidefasen).</p>
+      <div class="btn-grid">
+        <button class="btn-sm" id="recBtn" onclick="recordMeasurement()" disabled>&#43; Registr&eacute;r</button>
+        <button class="btn-sm" onclick="exportCSV()">&#8595; Eksport CSV</button>
+      </div>
+      <div class="meas-status" id="recStatus"></div>
+      <table class="meas-table" id="measTable">
+        <thead><tr><th>#</th><th>m (kg)</th><th>F<sub>tr&aelig;k</sub> (N)</th><th></th></tr></thead>
+        <tbody id="measBody"></tbody>
+      </table>
+      <div class="meas-empty" id="measEmpty">Ingen m&aring;linger endnu.</div>
+      <button class="btn-sm" style="width:100%" onclick="clearMeasurements()">Ryd tabel</button>
+    </div>
+  </div>
+
+  <div class="col col2">
+    <canvas id="anim" width="750" height="420"></canvas>
+    <div class="box explain-box" id="explainBox"></div>
+  </div>
+
+  <div class="col col3">
+    <div class="box">
+      <div class="sec-title">Materialepar</div>
+      <select class="mat-sel" id="matSel" onchange="selectMat(this.value)">
+        <option value="wood-wood">Tr&aelig; mod tr&aelig;</option>
+        <option value="wood-metal">Tr&aelig; mod metal</option>
+        <option value="steel-al">St&aring;l mod aluminium</option>
+        <option value="steel-ice">St&aring;l mod is</option>
+        <option value="tire-dry">Bild&aelig;k mod t&oslash;r asfalt</option>
+        <option value="tire-wet">Bild&aelig;k mod v&aring;d asfalt</option>
+        <option value="tire-ice">Bild&aelig;k mod isbelagt asfalt</option>
+        <option value="race-dry">Racerd&aelig;k mod t&oslash;r asfalt</option>
+      </select>
+    </div>
+
+    <div class="box">
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name">Masse</span>
+          <span class="slider-val" id="mVal">2,0 kg</span>
+        </div>
+        <input type="range" id="mSlider" min="0.5" max="5" step="0.1" value="2">
+      </div>
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name"><span class="mu">&mu;</span><sub>s</sub> (statisk)</span>
+          <span class="slider-val" id="msVal">0,55</span>
+        </div>
+        <input type="range" id="msSlider" min="0.02" max="1.5" step="0.01" value="0.55">
+      </div>
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name"><span class="mu">&mu;</span><sub>d</sub> (dynamisk)</span>
+          <span class="slider-val" id="mdVal">0,30</span>
+        </div>
+        <input type="range" id="mdSlider" min="0.02" max="1.5" step="0.01" value="0.30">
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="sec-title">M&aring;linger</div>
+      <div class="meters">
+        <div class="meter"><div class="mlabel">F<sub>N</sub></div><div class="mval" id="mFn">19,6 <small>N</small></div></div>
+        <div class="meter"><div class="mlabel">F<sub>tr&aelig;k</sub></div><div class="mval" id="mFp">0,0 <small>N</small></div></div>
+        <div class="meter"><div class="mlabel">F<sub>gnid</sub></div><div class="mval" id="mFg">0,0 <small>N</small></div></div>
+        <div class="meter"><div class="mlabel"><span class="mu">&mu;</span><sub>s</sub>&middot;F<sub>N</sub></div><div class="mval" id="mFmax">10,8 <small>N</small></div></div>
+        <div class="meter"><div class="mlabel">Acceleration</div><div class="mval" id="mA">0,00 <small>m/s&sup2;</small></div></div>
+        <div class="meter"><div class="mlabel">Hastighed</div><div class="mval" id="mV">0,00 <small>m/s</small></div></div>
+        <div class="meter"><div class="mlabel">Str&aelig;kning</div><div class="mval" id="mDist">0,00 <small>m</small></div></div>
+        <div class="meter"><div class="mlabel">Tilstand</div><div class="mval state-static" id="mState" style="font-size:12px">STILLE</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">Gunnar Gunnarsson &middot; 2026</div>
+
+<script>
+'use strict';
+
+/* ============== MATERIALEDATA ============== */
+const MATERIALS = {
+  'wood-wood':  {label:'Tr\u00e6 mod tr\u00e6',                mus:0.55, mud:0.30, blockColor:'#c08850', blockStroke:'#5a3820', topColor:'#caa06a', kind:'wood'},
+  'wood-metal': {label:'Tr\u00e6 mod metal',                  mus:0.60, mud:0.35, blockColor:'#c08850', blockStroke:'#5a3820', topColor:'#b8bcc4', kind:'wood'},
+  'steel-al':   {label:'St\u00e5l mod aluminium',             mus:0.60, mud:0.50, blockColor:'#8a9098', blockStroke:'#3a4048', topColor:'#c2c6cc', kind:'metal'},
+  'steel-ice':  {label:'St\u00e5l mod is',                    mus:0.20, mud:0.03, blockColor:'#8a9098', blockStroke:'#3a4048', topColor:'#cce8f5', kind:'metal'},
+  'tire-dry':   {label:'Bild\u00e6k mod t\u00f8r asfalt',     mus:0.95, mud:0.80, blockColor:'#2a2a2a', blockStroke:'#000000', topColor:'#555a5e', kind:'tire'},
+  'tire-wet':   {label:'Bild\u00e6k mod v\u00e5d asfalt',     mus:0.65, mud:0.50, blockColor:'#2a2a2a', blockStroke:'#000000', topColor:'#454c54', kind:'tire'},
+  'tire-ice':   {label:'Bild\u00e6k mod isbelagt asfalt',     mus:0.12, mud:0.08, blockColor:'#2a2a2a', blockStroke:'#000000', topColor:'#8aa6b4', kind:'tire'},
+  'race-dry':   {label:'Racerd\u00e6k mod t\u00f8r asfalt',   mus:1.40, mud:1.15, blockColor:'#1a1a1a', blockStroke:'#000000', topColor:'#555a5e', kind:'tire'},
+  'custom':     {label:'Brugerdefineret',                     mus:0.50, mud:0.30, blockColor:'#9a8f7a', blockStroke:'#4a4035', topColor:'#caa06a', kind:'wood'},
+};
+
+/* ============== GEOMETRI ============== */
+const TABLE_TOP_Y = 250;   // bordpladens overflade (klodsen hviler her)
+const SLAB_BOT    = 280;   // bordpladens underkant
+const LEG_BOT     = 385;   // bordbenenes bund
+const TABLE_LEFT  = 70;    // bordpladens venstre kant (px)
+const TABLE_RIGHT = 690;   // bordpladens højre kant (px)
+const TABLE_LEN_M = 2.0;   // bordpladens fysiske længde (m)
+const PX_PER_M    = (TABLE_RIGHT - TABLE_LEFT) / TABLE_LEN_M;  // px pr. meter
+const FBD_SCALE   = 2.6;   // px pr. newton (fast skala — tungere masse = længere pil; passer ved maks. masse)
+const REST_LEN    = 42;    // snorens/fjederens hvilelængde (px)
+const ANIM_W = 750, ANIM_H = 420;   // animationens logiske mål
+const GRAPH_W = 380, GRAPH_H = 370; // grafens logiske mål
+const SPRING_K = 0.35;     // dynamometer-fjederkonstant (N pr. px stræk) — stiv nok til at
+                           // slip nås tæt på klodsen, så håndtaget ikke løber ud af canvas
+
+/* ============== STATE ============== */
+const S = {
+  matKey: 'wood-wood',
+  mus: 0.55, mud: 0.30,
+  m: 2.0,
+  g: 9.82,
+  Fpull: 0,            // N (dynamometer-aflæsning)
+  Ffric: 0,            // N (positiv størrelse; retning altid mod venstre her)
+  x: TABLE_LEFT + 8,   // klodsens venstre kant (canvas px)
+  v: 0,                // m/s
+  distance: 0,         // tilbagelagt strækning (m)
+  moving: false,
+  atEnd: false,        // har nået bordkanten
+  t: 0,                // simulationstid (s)
+  running: true,
+  timeStarted: false,  // tiden starter først ved første greb
+  frozen: false,       // grafen fryses når man slipper
+  hist: [],            // {t, Fp} til F_træk(t)-graf
+  histMax: 1200,
+  dragging: false,
+  handleX: 0,          // håndtagets x under træk (px) — dynamometer-fjeder
+  handleV: 0,          // håndtagets hastighed (m/s) — til relativ dæmpning
+  handlePrevX: 0,
+  glideSamples: [],    // F_træk-værdier under den aktuelle glidefase (til måleregistrering)
+  lastGlideAvg: null,  // gennemsnitlig F_træk i seneste afsluttede glidefase (N)
+  lastGlideMass: null, // massen brugt i seneste glidefase (kg)
+  measurements: [],    // [{m, F}] registrerede datapar
+};
+
+
+/* ============== DOM ============== */
+const $ = (id) => document.getElementById(id);
+const animCv = $('anim'), animCtx = animCv.getContext('2d');
+const graphCv = $('graph'), graphCtx = graphCv.getContext('2d');
+const mSlider = $('mSlider');
+const msSlider = $('msSlider'), mdSlider = $('mdSlider');
+
+/* ============== HELPERS ============== */
+function fmtN(v, dec=1) { return v.toFixed(dec).replace('.', ','); }
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+// Vælg sort eller hvid tekst ud fra baggrundens lysstyrke (garanterer kontrast på enhver flade)
+function contrastText(col) {
+  let r, g, b;
+  col = col.trim();
+  const rgb = col.match(/rgba?\(([^)]+)\)/);
+  if (rgb) {
+    const p = rgb[1].split(',').map(s => parseFloat(s));
+    r = p[0]; g = p[1]; b = p[2];
+  } else {
+    let hex = col.replace('#','');
+    if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
+    r = parseInt(hex.slice(0,2),16); g = parseInt(hex.slice(2,4),16); b = parseInt(hex.slice(4,6),16);
+  }
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return lum > 0.55 ? '#141414' : '#ffffff';
+}
+
+/* ============== MATERIAL SELECT ============== */
+function selectMat(key) {
+  S.matKey = key;
+  const mat = MATERIALS[key];
+  S.mus = mat.mus; S.mud = mat.mud;
+  msSlider.value = mat.mus; mdSlider.value = mat.mud;
+  $('matSel').value = key;
+  updateLabels();
+}
+
+// Øvre grænse for trækkraften (så fjederen aldrig løber løbsk; ligger altid over μ_s·F_N)
+function maxPull() { return Math.max(25, 1.7 * S.mus * S.m * S.g); }
+
+msSlider.addEventListener('input', () => {
+  S.mus = parseFloat(msSlider.value);
+  if (S.mud > S.mus) { S.mud = S.mus; mdSlider.value = S.mus; }
+  updateLabels();
+});
+mdSlider.addEventListener('input', () => {
+  S.mud = parseFloat(mdSlider.value);
+  if (S.mud > S.mus) { S.mus = S.mud; msSlider.value = S.mud; }
+  updateLabels();
+});
+mSlider.addEventListener('input', () => {
+  S.m = parseFloat(mSlider.value);
+  updateLabels();
+});
+
+/* ============== LABELS / METERS ============== */
+function updateLabels() {
+  $('mVal').textContent = fmtN(S.m) + ' kg';
+  $('msVal').textContent = fmtN(S.mus, 2);
+  $('mdVal').textContent = fmtN(S.mud, 2);
+  const FN = S.m * S.g;
+  const Fmax = S.mus * FN;
+  $('mFn').innerHTML = fmtN(FN) + ' <small>N</small>';
+  $('mFp').innerHTML = fmtN(S.Fpull) + ' <small>N</small>';
+  $('mFmax').innerHTML = fmtN(Fmax) + ' <small>N</small>';
+  $('mFg').innerHTML = fmtN(S.Ffric) + ' <small>N</small>';
+  let a = 0;
+  if (S.moving) { a = (S.Fpull - S.mud * FN) / S.m; }
+  $('mA').innerHTML = fmtN(a, 2) + ' <small>m/s\u00b2</small>';
+  $('mV').innerHTML = fmtN(S.v, 2) + ' <small>m/s</small>';
+  $('mDist').innerHTML = fmtN(S.distance, 2) + ' <small>m</small>';
+  const st = $('mState');
+  if (S.atEnd) { st.textContent = 'BORDKANT'; st.className = 'mval state-end'; }
+  else if (S.moving) { st.textContent = 'GLIDER'; st.className = 'mval state-moving'; }
+  else { st.textContent = 'STILLE'; st.className = 'mval state-static'; }
+  st.style.fontSize = '12px';
+  updateExplain();
+}
+
+function updateExplain() {
+  const FN = S.m * S.g;
+  const Fmax = S.mus * FN;
+  const Fd = S.mud * FN;
+  let html = '';
+  if (S.atEnd) {
+    html = '<p>Klodsen har n&aring;et <span class="acc-g">bordkanten</span> og kan ikke glide l&aelig;ngere. Tryk p&aring; <span class="acc">Nulstil</span> for at starte forfra.</p>';
+  } else if (S.Fpull < 0.01) {
+    html = '<p>Ingen tr&aelig;kkraft anvendt. Klodsen ligger stille. <span class="acc-g">Gnidningskraften er nul</span> &mdash; den opst&aring;r kun som reaktion p&aring; en p&aring;tvunget kraft.</p>';
+  } else if (!S.moving && S.Fpull < Fmax * 0.95) {
+    html = '<p>Klodsen st&aring;r stille. <span class="acc">F<sub>tr&aelig;k</sub> = ' + fmtN(S.Fpull) + ' N</span> balanceres af <span class="acc-y">statisk gnidning F<sub>gnid</sub> = ' + fmtN(S.Ffric) + ' N</span>.</p>'
+         + '<p>Statisk gnidning kan vokse op til <span class="acc-y">&mu;<sub>s</sub>&middot;F<sub>N</sub> = ' + fmtN(Fmax) + ' N</span> f&oslash;r klodsen slipper.</p>';
+  } else if (!S.moving) {
+    html = '<p>Statisk gnidning er <span class="acc-y">n&aelig;sten p&aring; maksimum</span> (&mu;<sub>s</sub>&middot;F<sub>N</sub> = ' + fmtN(Fmax) + ' N). Klodsen er lige ved at slippe!</p>';
+  } else {
+    const a = (S.Fpull - Fd) / S.m;
+    const constV = Math.abs(S.Fpull - Fd) / Math.max(Fd, 0.01) < 0.05;
+    if (constV) {
+      html = '<p><span class="acc-g">Konstant fart!</span> N&aring;r <span class="acc">F<sub>tr&aelig;k</sub> = &mu;<sub>d</sub>&middot;F<sub>N</sub> = ' + fmtN(Fd) + ' N</span>, opvejer gnidningen tr&aelig;kkraften, og klodsen glider med uforanderlig hastighed.</p>'
+           + '<p>Det er pr&aelig;cis denne situation man fors&oslash;ger at opn&aring; med et dynamometer for at m&aring;le &mu;<sub>d</sub>.</p>';
+    } else if (S.Fpull > Fd) {
+      html = '<p>Klodsen glider og <span class="acc">accelererer</span>. Dynamisk gnidning <span class="acc-y">F<sub>gnid</sub> = &mu;<sub>d</sub>&middot;F<sub>N</sub> = ' + fmtN(Fd) + ' N</span> virker modsat bev&aelig;gelsen.</p>'
+           + '<p>Resulterende kraft: <span class="acc">' + fmtN(S.Fpull - Fd) + ' N</span>. Acceleration: <span class="acc">' + fmtN(a, 2) + ' m/s\u00b2</span>.</p>';
+    } else {
+      html = '<p>Klodsen glider men <span class="acc-y">decelererer</span>, fordi <span class="acc">F<sub>tr&aelig;k</sub> = ' + fmtN(S.Fpull) + ' N</span> er mindre end gnidningskraften <span class="acc-y">' + fmtN(Fd) + ' N</span>.</p>'
+           + '<p>Acceleration: <span class="acc-y">' + fmtN(a, 2) + ' m/s\u00b2</span>. Klodsen stopper snart.</p>';
+    }
+  }
+  $('explainBox').innerHTML = html;
+}
+
+/* ============== FYSIK ============== */
+function step(dt) {
+  const FN = S.m * S.g;
+  const Fsmax = S.mus * FN;
+  const Fd = S.mud * FN;
+  const blockW = blockSize().w;
+  const maxX = TABLE_RIGHT - blockW;
+
+  // Under træk: trækkraften er en blød dynamometer-fjeder mellem håndtag og klods.
+  // Fjederen er selvregulerende — trækker man jævnt, følger klodsen håndtagets fart
+  // (konstant fart), og den kan ikke accelerere ukontrolleret.
+  if (S.dragging) {
+    const stretch = Math.max(0, S.handleX - (S.x + blockW) - REST_LEN);
+    let Fs = SPRING_K * stretch;
+    const Fmax = maxPull();
+    if (Fs > Fmax) Fs = Fmax;
+    S.Fpull = Fs;
+  } else {
+    S.Fpull = 0;   // ingen kraft når håndtaget ikke holdes
+  }
+
+  if (S.atEnd) { S.v = 0; S.Ffric = Math.min(S.Fpull, Fsmax); return; }
+
+  if (!S.moving) {
+    if (S.x >= maxX) { S.atEnd = true; S.v = 0; S.Ffric = Math.min(S.Fpull, Fsmax); return; }
+    if (S.Fpull > Fsmax + 1e-6) {
+      S.moving = true; S.v = 0;
+    } else {
+      S.Ffric = S.Fpull; S.v = 0; return;
+    }
+  }
+
+  // dynamisk: gnidning modsat bevægelsen (her altid mod venstre, da vi kun trækker mod højre).
+  // Dæmpningen virker på den RELATIVE hastighed (håndtag − klods): den dræber svingninger,
+  // men forsvinder ved konstant fart, så dynamometret aflæser præcis μ_d·F_N.
+  const c = S.dragging ? 2 * Math.sqrt(SPRING_K * PX_PER_M * S.m) : 0;
+  const Fnet = S.Fpull - Fd + c * (S.handleV - S.v);
+  const a = Fnet / S.m;
+  let v_new = S.v + a * dt;
+
+  if (S.v > 0 && v_new < 0 && S.Fpull <= Fsmax) {
+    S.v = 0; S.moving = false; S.Ffric = S.Fpull; return;
+  }
+  if (v_new < 0.003 && S.Fpull <= Fsmax) {
+    S.v = 0; S.moving = false; S.Ffric = S.Fpull; return;
+  }
+
+  S.v = v_new;
+  const dx_m = S.v * dt;
+  S.x += dx_m * PX_PER_M;
+  S.distance += Math.abs(dx_m);
+  S.Ffric = Fd;
+  // opsaml glidefase: kraft, relativ hastighed (håndtag − klods) og strækning
+  if (S.v > 0.02) S.glideSamples.push({ F: S.Fpull, rel: S.handleV - S.v, dx: Math.abs(dx_m) });
+
+  if (S.x >= maxX) {
+    S.x = maxX; S.v = 0; S.moving = false; S.atEnd = true;
+    S.Ffric = Math.min(S.Fpull, Fsmax);
+  }
+}
+
+/* ============== TEGNING ============== */
+function blockSize() {
+  const baseW = 78, baseH = 54;
+  const k = Math.pow(S.m / 2.0, 1/3);
+  return { w: baseW * k, h: baseH * k };
+}
+
+function drawTable(ctx) {
+  const mat = MATERIALS[S.matKey];
+  // bordplade (slab)
+  const slabTop = TABLE_TOP_Y;
+  const slabH = SLAB_BOT - slabTop;
+  // skygge under pladen
+  ctx.fillStyle = 'rgba(0,0,0,0.10)';
+  ctx.fillRect(TABLE_LEFT+4, SLAB_BOT, TABLE_RIGHT-TABLE_LEFT, 4);
+  // selve pladen
+  ctx.fillStyle = mat.topColor;
+  ctx.fillRect(TABLE_LEFT, slabTop, TABLE_RIGHT - TABLE_LEFT, slabH);
+  // overkant-highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.fillRect(TABLE_LEFT, slabTop, TABLE_RIGHT - TABLE_LEFT, 3);
+  // ramme
+  ctx.strokeStyle = mat.blockStroke;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(TABLE_LEFT, slabTop, TABLE_RIGHT - TABLE_LEFT, slabH);
+
+  // ben
+  const legW = 16;
+  const legInset = 26;
+  ctx.fillStyle = mat.topColor;
+  for (const lx of [TABLE_LEFT + legInset, TABLE_RIGHT - legInset - legW]) {
+    ctx.fillRect(lx, SLAB_BOT, legW, LEG_BOT - SLAB_BOT);
+    ctx.strokeRect(lx, SLAB_BOT, legW, LEG_BOT - SLAB_BOT);
+    // skygge på indersiden af benet
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.fillRect(lx + legW - 4, SLAB_BOT, 4, LEG_BOT - SLAB_BOT);
+    ctx.fillStyle = mat.topColor;
+  }
+
+  // gulvlinje
+  ctx.strokeStyle = cssVar('--dim');
+  ctx.globalAlpha = 0.4;
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(20, LEG_BOT); ctx.lineTo(ANIM_W-20, LEG_BOT); ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // målestok langs bordpladens forkant
+  drawRuler(ctx, slabTop);
+}
+
+function drawRuler(ctx, slabTop) {
+  // tekst/streger vælges efter bordpladens lysstyrke — læsbart i begge temaer og alle materialer
+  const ink = contrastText(MATERIALS[S.matKey].topColor);
+  ctx.strokeStyle = ink;
+  ctx.fillStyle = ink;
+  ctx.lineWidth = 1.3;
+  ctx.font = 'bold 11px Courier New';
+  ctx.textAlign = 'center';
+  const step = 0.25; // m
+  for (let d = 0; d <= TABLE_LEN_M + 1e-6; d += step) {
+    const x = TABLE_LEFT + d * PX_PER_M;
+    const whole = Math.abs(d - Math.round(d)) < 0.01;
+    const half  = Math.abs((d*2) - Math.round(d*2)) < 0.01;
+    const h = whole ? 12 : (half ? 8 : 5);
+    ctx.beginPath();
+    ctx.moveTo(x, slabTop + 1);
+    ctx.lineTo(x, slabTop + 1 + h);
+    ctx.stroke();
+    if (whole) {
+      ctx.fillText(fmtN(d, 1) + ' m', x, slabTop + 24);
+    }
+  }
+}
+
+function drawBlock(ctx, x) {
+  const mat = MATERIALS[S.matKey];
+  const sz = blockSize();
+  const by = TABLE_TOP_Y - sz.h;
+  // skygge
+  ctx.fillStyle = 'rgba(0,0,0,0.16)';
+  ctx.beginPath();
+  ctx.ellipse(x + sz.w/2, TABLE_TOP_Y - 1, sz.w/2 + 3, 3, 0, 0, Math.PI*2);
+  ctx.fill();
+  // krop
+  ctx.fillStyle = mat.blockColor;
+  ctx.strokeStyle = mat.blockStroke;
+  ctx.lineWidth = 2;
+  ctx.fillRect(x, by, sz.w, sz.h);
+  ctx.strokeRect(x, by, sz.w, sz.h);
+  // diskret tekstur (få linjer — ikke støjende)
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x, by, sz.w, sz.h); ctx.clip();
+  if (mat.kind === 'wood') {
+    ctx.strokeStyle = 'rgba(60,30,10,0.30)'; ctx.lineWidth = 1;
+    for (let i = 1; i <= 2; i++) {
+      const yy = by + (sz.h/3)*i;
+      ctx.beginPath(); ctx.moveTo(x+3, yy); ctx.lineTo(x+sz.w-3, yy); ctx.stroke();
+    }
+  } else if (mat.kind === 'metal') {
+    ctx.fillStyle = mat.blockStroke;
+    for (const px of [x+9, x+sz.w-9]) for (const py of [by+9, by+sz.h-9]) {
+      ctx.beginPath(); ctx.arc(px, py, 2.4, 0, Math.PI*2); ctx.fill();
+    }
+  } else if (mat.kind === 'tire') {
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 5; i++) {
+      const xx = x + 7 + i * (sz.w-14)/4;
+      ctx.beginPath(); ctx.moveTo(xx, by+4); ctx.lineTo(xx, by+sz.h-4); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color, lineW=3, headLen=10) {
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = lineW;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  const ang = Math.atan2(y2 - y1, x2 - x1);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - headLen * Math.cos(ang - 0.4), y2 - headLen * Math.sin(ang - 0.4));
+  ctx.lineTo(x2 - headLen * Math.cos(ang + 0.4), y2 - headLen * Math.sin(ang + 0.4));
+  ctx.closePath(); ctx.fill();
+}
+
+function labelChip(ctx, cx, cy, text, color) {
+  ctx.font = 'bold 12px Courier New';
+  const w = ctx.measureText(text).width;
+  const W = ANIM_W;
+  let bx = cx - w/2 - 5;
+  bx = Math.max(3, Math.min(bx, W - w - 13));
+  const by = cy - 12;
+  // massiv farvet badge
+  ctx.fillStyle = color;
+  ctx.fillRect(bx, by, w + 10, 18);
+  // tekstfarve vælges efter badge-lysstyrke — høj kontrast i begge temaer
+  ctx.fillStyle = contrastText(color);
+  ctx.textAlign = 'left';
+  ctx.fillText(text, bx + 5, cy + 1.5);
+}
+
+// Fritlegemediagram: alle vektorer fra massemidtpunktet
+function drawFBD(ctx, x) {
+  const sz = blockSize();
+  const H = ANIM_H;
+  const cx = x + sz.w/2;
+  const cy = TABLE_TOP_Y - sz.h/2;
+  const FN = S.m * S.g;
+  const sc = FBD_SCALE;
+
+  // massemidtpunkt-markør
+  ctx.fillStyle = cssVar('--text');
+  ctx.beginPath(); ctx.arc(cx, cy, 2.6, 0, Math.PI*2); ctx.fill();
+
+  // F_N (op) grøn
+  drawArrow(ctx, cx, cy, cx, cy - FN*sc, cssVar('--norm'), 3, 9);
+  labelChip(ctx, cx, Math.max(12, cy - FN*sc - 10), 'F_N = ' + fmtN(FN) + ' N', cssVar('--norm'));
+
+  // F_tyn (ned) lilla
+  drawArrow(ctx, cx, cy, cx, cy + FN*sc, cssVar('--grav'), 3, 9);
+  labelChip(ctx, cx, Math.min(LEG_BOT - 12, cy + FN*sc + 14), 'F_tyn = ' + fmtN(FN) + ' N', cssVar('--grav'));
+
+  // F_træk (højre) cyan
+  if (S.Fpull > 0.05) {
+    drawArrow(ctx, cx, cy, cx + S.Fpull*sc, cy, cssVar('--pull'), 3.5, 10);
+    labelChip(ctx, cx + S.Fpull*sc + 2, cy - 16, 'F_træk = ' + fmtN(S.Fpull) + ' N', cssVar('--pull'));
+  }
+  // F_gnid (venstre) gul
+  if (Math.abs(S.Ffric) > 0.05) {
+    drawArrow(ctx, cx, cy, cx - S.Ffric*sc, cy, cssVar('--fric'), 3.5, 10);
+    labelChip(ctx, cx - S.Ffric*sc - 2, cy + 18, 'F_gnid = ' + fmtN(S.Ffric) + ' N', cssVar('--fric'));
+  }
+}
+
+// Snor + håndtag (tynd linje — skygger ikke for kraftpilen)
+function drawString(ctx, x) {
+  const sz = blockSize();
+  const attachY = TABLE_TOP_Y - sz.h + 11;  // øverste tredjedel af klodsen
+  const x1 = x + sz.w;
+  const handleX = Math.min(x1 + REST_LEN + S.Fpull / SPRING_K, ANIM_W - 16);
+  // snor
+  ctx.strokeStyle = cssVar('--text');
+  ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(x1, attachY); ctx.lineTo(handleX, attachY); ctx.stroke();
+  // lille knude ved klodsen
+  ctx.fillStyle = cssVar('--text');
+  ctx.beginPath(); ctx.arc(x1, attachY, 2.4, 0, Math.PI*2); ctx.fill();
+  // håndtag (ring)
+  ctx.fillStyle = cssVar('--pull');
+  ctx.strokeStyle = cssVar('--text');
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(handleX, attachY, 7, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(handleX-3, attachY); ctx.lineTo(handleX+3, attachY); ctx.stroke();
+  return { x: handleX, y: attachY };
+}
+
+function drawAnim() {
+  const ctx = animCtx;
+  const W = ANIM_W, H = ANIM_H;
+  ctx.clearRect(0, 0, W, H);
+  ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+  ctx.fillStyle = cssVar('--bg2');
+  ctx.fillRect(0, 0, W, H);
+
+  // materialeoverskrift
+  ctx.fillStyle = cssVar('--text');
+  ctx.font = 'bold 12px Courier New';
+  ctx.textAlign = 'left';
+  ctx.fillText('MATERIALE: ' + MATERIALS[S.matKey].label.toUpperCase(), 10, 17);
+  ctx.fillText('\u03bc_s = ' + fmtN(S.mus, 2) + '    \u03bc_d = ' + fmtN(S.mud, 2), 10, 33);
+
+  // hastighed
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 12px Courier New';
+  if (S.moving) { ctx.fillStyle = cssVar('--fric'); ctx.fillText('v = ' + fmtN(S.v, 2) + ' m/s', W - 10, 17); }
+  else { ctx.fillStyle = cssVar('--norm'); ctx.fillText('v = 0', W - 10, 17); }
+
+  drawTable(ctx);
+  drawBlock(ctx, S.x);
+  drawString(ctx, S.x);
+  drawFBD(ctx, S.x);
+
+  if (!S.dragging && S.Fpull < 0.5 && !S.atEnd) {
+    ctx.fillStyle = cssVar('--pull');
+    ctx.font = 'bold 14px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('tr\u00e6k i h\u00e5ndtaget \u2192 (snor + kraftm\u00e5ler)', W/2, H - 18);
+  }
+}
+
+/* ============== GRAF ============== */
+function drawGraph() {
+  const ctx = graphCtx;
+  const W = GRAPH_W, H = GRAPH_H;
+  ctx.clearRect(0, 0, W, H);
+  ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+  ctx.fillStyle = cssVar('--bg2');
+  ctx.fillRect(0, 0, W, H);
+
+  const pad = {l: 50, r: 14, t: 28, b: 38};
+  const pw = W - pad.l - pad.r;
+  const ph = H - pad.t - pad.b;
+
+  const FN = S.m * S.g;
+  const Fsmax = S.mus * FN;
+  const Fd = S.mud * FN;
+  const yMax = Math.max(Fsmax * 1.3, 5);
+
+  ctx.fillStyle = cssVar('--green');
+  ctx.font = 'bold 11px Courier New';
+  ctx.textAlign = 'left';
+  ctx.fillText('TR\u00c6KKRAFT OVER TID', pad.l, 14);
+
+  ctx.strokeStyle = cssVar('--dim'); ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t + ph);
+  ctx.lineTo(pad.l + pw, pad.t + ph);
+  ctx.stroke();
+
+  ctx.font = 'bold 11px Courier New';
+  const yTickStep = niceTick(yMax / 5);
+  for (let v = 0; v <= yMax + 1e-6; v += yTickStep) {
+    const py = pad.t + ph - (v / yMax) * ph;
+    ctx.strokeStyle = (v === 0) ? cssVar('--dim') : cssVar('--border');
+    ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(pad.l + pw, py); ctx.stroke();
+    ctx.fillStyle = cssVar('--text');
+    ctx.textAlign = 'right';
+    ctx.fillText(fmtN(v, v < 10 ? 1 : 0), pad.l - 5, py + 3);
+  }
+  ctx.save();
+  ctx.translate(12, pad.t + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = cssVar('--text');
+  ctx.font = 'bold 10px Courier New';
+  ctx.fillText('Tr\u00e6kkraft F_tr\u00e6k (N)', 0, 0);
+  ctx.restore();
+
+  // tidsakse
+  const tMax = 12;
+  ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
+  for (let t = 0; t <= tMax; t += 2) {
+    const px = pad.l + (t / tMax) * pw;
+    ctx.strokeStyle = cssVar('--border');
+    ctx.beginPath(); ctx.moveTo(px, pad.t); ctx.lineTo(px, pad.t + ph); ctx.stroke();
+    ctx.fillStyle = cssVar('--text');
+    ctx.fillText(t, px, pad.t + ph + 14);
+  }
+  ctx.fillStyle = cssVar('--text'); ctx.font = 'bold 11px Courier New';
+  ctx.fillText('tid (s)', pad.l + pw/2, pad.t + ph + 30);
+
+  // F_træk-kurven (blå) — hele trækforløbet
+  const t0 = Math.max(0, S.t - tMax);
+  if (S.hist.length >= 2) {
+    ctx.strokeStyle = cssVar('--pull'); ctx.lineWidth = 2.4;
+    ctx.beginPath(); let started = false;
+    for (const p of S.hist) {
+      if (p.t < t0) continue;
+      const px = pad.l + ((p.t - t0) / tMax) * pw;
+      const py = pad.t + ph - Math.min(p.Fp / yMax, 1) * ph;
+      if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  // signaturforklaring
+  ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'left';
+  ctx.fillStyle = cssVar('--pull'); ctx.fillRect(pad.l + 6, pad.t + 8, 14, 3);
+  ctx.fillStyle = cssVar('--text'); ctx.fillText('F_tr\u00e6k (m\u00e5lt)', pad.l + 24, pad.t + 13);
+
+  // referencelinjer
+  ctx.setLineDash([4, 3]); ctx.strokeStyle = cssVar('--fric'); ctx.lineWidth = 1.4;
+  let yLine = pad.t + ph - (Fsmax / yMax) * ph;
+  ctx.beginPath(); ctx.moveTo(pad.l, yLine); ctx.lineTo(pad.l + pw, yLine); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = cssVar('--fric'); ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'right';
+  ctx.fillText('\u03bc_s\u00b7F_N = ' + fmtN(Fsmax, 1) + ' N', pad.l + pw - 4, yLine - 4);
+
+  ctx.setLineDash([2, 3]); ctx.strokeStyle = cssVar('--fric'); ctx.lineWidth = 1.2;
+  yLine = pad.t + ph - (Fd / yMax) * ph;
+  ctx.beginPath(); ctx.moveTo(pad.l, yLine); ctx.lineTo(pad.l + pw, yLine); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = cssVar('--fric'); ctx.textAlign = 'right';
+  ctx.fillText('\u03bc_d\u00b7F_N = ' + fmtN(Fd, 1) + ' N', pad.l + pw - 4, yLine - 4);
+}
+
+function niceTick(raw) {
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / pow;
+  let mult;
+  if (n < 1.5) mult = 1; else if (n < 3.5) mult = 2; else if (n < 7.5) mult = 5; else mult = 10;
+  return mult * pow;
+}
+
+/* ============== TRÆK I HÅNDTAGET ============== */
+function handlePos() {
+  const sz = blockSize();
+  const x1 = S.x + sz.w;
+  const attachY = TABLE_TOP_Y - sz.h + 11;
+  const handleX = Math.min(x1 + REST_LEN + S.Fpull / SPRING_K, ANIM_W - 16);
+  return { x: handleX, y: attachY };
+}
+function getMousePos(evt) {
+  const rect = animCv.getBoundingClientRect();
+  return {
+    x: (evt.clientX - rect.left) * (ANIM_W / rect.width),
+    y: (evt.clientY - rect.top) * (ANIM_H / rect.height)
+  };
+}
+function setHandleFromCursor(mouseX) {
+  // Håndtaget følger fingeren direkte (absolut), begrænset til bordet.
+  // Fjederkraften beregnes i step() ud fra stræk = håndtag − klods.
+  const minX = S.x + blockSize().w + REST_LEN;
+  S.handleX = Math.max(minX, Math.min(mouseX, ANIM_W - 16));
+}
+function startDrag(mouseX) {
+  S.dragging = true;
+  // tiden starter første gang man griber håndtaget
+  if (!S.timeStarted) { S.timeStarted = true; }
+  S.frozen = false;
+  // nyt greb: nulstil opsamling af glidefase og afventende måling
+  S.glideSamples = [];
+  S.lastGlideAvg = null; S.lastGlideMass = null;
+  $('recBtn').disabled = true;
+  $('recStatus').className = 'meas-status'; $('recStatus').textContent = '';
+  // placer håndtaget så stræk svarer til nuværende (typisk 0) Fpull
+  S.handleX = S.x + blockSize().w + REST_LEN + S.Fpull / SPRING_K;
+  setHandleFromCursor(mouseX);
+  S.handlePrevX = S.handleX; S.handleV = 0;
+}
+function endDrag() {
+  if (!S.dragging) return;
+  S.dragging = false;
+  // afslut glidefasen: gem gennemsnitlig F_træk (den stabile del af glidningen)
+  finalizeGlide();
+  // frys grafen når man slipper
+  S.frozen = true;
+}
+function finalizeGlide() {
+  const samples = S.glideSamples;
+  S.glideSamples = [];
+  const status = $('recStatus');
+  // Kassér indsvingningen (de første DROP_DIST), og vurdér resten ("halen").
+  // En gyldig måling kræver (A) at halen er lang nok, og (B) at klodsen dér kører
+  // ved nogenlunde konstant fart — målt på den GENNEMSNITLIGE relative hastighed
+  // (håndtag − klods), som er ≈ 0 ved konstant fart og direkte bestemmer aflæsningens bias.
+  const DROP_DIST  = 0.30;   // m — indsvingning der kasseres
+  const MIN_TAIL   = 0.30;   // m — krav til glidestrækning i halen (A)
+  const REL_THRESH = 0.10;   // m/s — øvre grænse for |middel relativ hastighed| (B)
+
+  let cum = 0;
+  const tail = [];
+  for (const s of samples) {
+    cum += s.dx;
+    if (cum >= DROP_DIST) tail.push(s);
+  }
+  const tailDist = tail.reduce((sum, s) => sum + s.dx, 0);
+  const meanRel = tail.length ? tail.reduce((sum, s) => sum + s.rel, 0) / tail.length : 99;
+
+  if (tail.length >= 10 && tailDist >= MIN_TAIL && Math.abs(meanRel) < REL_THRESH) {
+    const avg = tail.reduce((sum, s) => sum + s.F, 0) / tail.length;
+    S.lastGlideAvg = avg;
+    S.lastGlideMass = S.m;
+    $('recBtn').disabled = false;
+    status.className = 'meas-status ok';
+    status.innerHTML = '&#10003; M&aring;ling klar: F<sub>tr&aelig;k</sub> = ' + fmtN(avg, 2) + ' N &mdash; tryk Registr&eacute;r';
+  } else {
+    S.lastGlideAvg = null; S.lastGlideMass = null;
+    $('recBtn').disabled = true;
+    status.className = 'meas-status warn';
+    const tooShort = (tail.length < 10 || tailDist < MIN_TAIL);
+    status.innerHTML = tooShort
+      ? '&#9888; Tr&aelig;k l&aelig;ngere hen over bordet f&oslash;r m&aring;lingen kan registreres.'
+      : '&#9888; Tr&aelig;k mere j&aelig;vnt (konstant fart) f&oslash;r m&aring;lingen kan registreres.';
+  }
+}
+animCv.addEventListener('mousedown', (e) => {
+  const p = getMousePos(e), h = handlePos();
+  if (Math.hypot(p.x - h.x, p.y - h.y) < 16) startDrag(p.x);
+});
+window.addEventListener('mousemove', (e) => { if (S.dragging) setHandleFromCursor(getMousePos(e).x); });
+window.addEventListener('mouseup', endDrag);
+animCv.addEventListener('mousemove', (e) => {
+  const p = getMousePos(e), h = handlePos();
+  const near = Math.hypot(p.x - h.x, p.y - h.y) < 16;
+  animCv.style.cursor = S.dragging ? 'grabbing' : (near ? 'grab' : 'default');
+});
+animCv.addEventListener('touchstart', (e) => {
+  if (!e.touches.length) return;
+  const p = getMousePos(e.touches[0]), h = handlePos();
+  if (Math.hypot(p.x - h.x, p.y - h.y) < 22) { startDrag(p.x); e.preventDefault(); }
+}, {passive:false});
+animCv.addEventListener('touchmove', (e) => {
+  if (!S.dragging || !e.touches.length) return;
+  setHandleFromCursor(getMousePos(e.touches[0]).x); e.preventDefault();
+}, {passive:false});
+animCv.addEventListener('touchend', endDrag);
+
+/* ============== STYRING ============== */
+function togglePlay() {
+  S.running = !S.running;
+  $('playBtn').innerHTML = S.running ? '&#10074;&#10074; Pause' : '&#9658; K\u00f8r';
+  $('playBtn').classList.toggle('on', S.running);
+}
+function resetSim() {
+  S.t = 0; S.hist = [];
+  S.Fpull = 0;
+  S.v = 0; S.x = TABLE_LEFT + 8; S.distance = 0;
+  S.moving = false; S.atEnd = false; S.Ffric = 0;
+  S.timeStarted = false; S.frozen = false;
+  S.glideSamples = []; S.lastGlideAvg = null; S.lastGlideMass = null;
+  $('recBtn').disabled = true;
+  if ($('recStatus')) { $('recStatus').className = 'meas-status'; $('recStatus').textContent = ''; }
+  if (!S.running) togglePlay();
+  updateLabels();
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = (cur === 'light') ? '' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  $('themeBtn').innerHTML = (next === 'light') ? '&#9790; M\u00f8rk tilstand' : '&#9728; Lys tilstand';
+}
+function copyCode() {
+  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  navigator.clipboard.writeText(html).then(() => {
+    const btn = $('copyBtn'); const orig = btn.innerHTML;
+    btn.innerHTML = '\u2713 Kopieret';
+    setTimeout(() => { btn.innerHTML = orig; }, 1400);
+  });
+}
+
+/* ============== MÅLESERIE ============== */
+function recordMeasurement() {
+  if (S.lastGlideAvg == null) return;
+  S.measurements.push({ m: S.lastGlideMass, F: S.lastGlideAvg });
+  S.lastGlideAvg = null; S.lastGlideMass = null;
+  $('recBtn').disabled = true;
+  $('recStatus').className = 'meas-status';
+  $('recStatus').textContent = '';
+  renderMeasurements();
+}
+function deleteMeasurement(i) {
+  S.measurements.splice(i, 1);
+  renderMeasurements();
+}
+function clearMeasurements() {
+  S.measurements = [];
+  renderMeasurements();
+}
+function renderMeasurements() {
+  const body = $('measBody');
+  body.innerHTML = '';
+  S.measurements.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + (i + 1) + '</td>'
+      + '<td>' + fmtN(row.m, 2) + '</td>'
+      + '<td>' + fmtN(row.F, 2) + '</td>'
+      + '<td><span class="meas-del" onclick="deleteMeasurement(' + i + ')">&times;</span></td>';
+    body.appendChild(tr);
+  });
+  $('measEmpty').style.display = S.measurements.length ? 'none' : 'block';
+}
+function exportCSV() {
+  if (!S.measurements.length) { alert('Ingen m\u00e5linger at eksportere endnu.'); return; }
+  // dansk decimalkomma + semikolon som separator
+  let csv = 'masse (kg);F_traek (N)\r\n';
+  for (const row of S.measurements) {
+    csv += fmtN(row.m, 3) + ';' + fmtN(row.F, 3) + '\r\n';
+  }
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'gnidning_maaleserie.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ============== HOVEDLOOP ============== */
+let last = performance.now();
+function loop(now) {
+  const dtWall = Math.min(0.05, (now - last) / 1000);
+  last = now;
+
+  // håndtagets hastighed (m/s) til relativ dæmpning i fjedermodellen
+  if (S.dragging && dtWall > 0) {
+    S.handleV = (S.handleX - S.handlePrevX) / dtWall / PX_PER_M;
+  } else {
+    S.handleV = 0;
+  }
+  S.handlePrevX = S.handleX;
+
+  // Tiden løber kun når den er startet (første greb), ikke frosset, ikke pauset, ikke ved bordkant.
+  const timeRuns = S.running && S.timeStarted && !S.frozen && !S.atEnd;
+  if (S.running && !S.atEnd) {
+    const subSteps = 4;
+    const sdt = dtWall / subSteps;
+    for (let i = 0; i < subSteps; i++) step(sdt);
+    if (timeRuns) {
+      S.t += dtWall;
+      if (S.hist.length === 0 || S.t - S.hist[S.hist.length-1].t > 0.025) {
+        S.hist.push({ t: S.t, Fp: S.Fpull });
+        if (S.hist.length > S.histMax) S.hist.shift();
+      }
+    }
+  } else if (S.running && S.atEnd) {
+    step(0);
+  }
+
+  updateLabels();
+  drawAnim();
+  drawGraph();
+  requestAnimationFrame(loop);
+}
+
+/* ============== INIT ============== */
+function setupHiDPI(canvas, ctx, cssW, cssH) {
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);  // tegn i logiske px, skarpt på Retina
+}
+function init() {
+  setupHiDPI(animCv, animCtx, ANIM_W, ANIM_H);
+  setupHiDPI(graphCv, graphCtx, GRAPH_W, GRAPH_H);
+  selectMat('wood-wood');
+  renderMeasurements();
+  updateLabels();
+  requestAnimationFrame(loop);
+}
+init();
+</script>
+
+</body>
+</html>

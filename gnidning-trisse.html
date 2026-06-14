@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="da" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gnidning — Lod over trisse</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* DARK (cyberpunk) — toggleable */
+  --bg0:#030810;--bg1:#060e18;--bg2:#0a1622;--bg3:#0f1e2d;
+  --border:#1a3a52;
+  --green:#00ff9f;--cyan:#00cfff;--yellow:#ffd93d;
+  --text:#d0eef5;--dim:#8ec8d8;
+  --font:'Courier New','Lucida Console',monospace;
+  --tr:0.15s ease;
+  --pull:#00cfff;   /* snorkraft cyan */
+  --fric:#ffd93d;   /* gnidning gul */
+  --norm:#00ff9f;   /* normalkraft grøn */
+  --grav:#c080ff;   /* tyngdekraft lilla */
+}
+[data-theme="light"]{
+  --bg0:#e8e0d2;--bg1:#f4eee3;--bg2:#fdfaf4;--bg3:#fdfaf4;
+  --border:#d6cbb8;
+  --green:#1D9E75;--cyan:#378ADD;--yellow:#c07800;
+  --text:#1a1a1a;--dim:#333333;
+  --pull:#1f6fc4;--fric:#a85f00;--norm:#147a4f;--grav:#7b3fa0;
+}
+[data-theme="light"] canvas{border-color:#d6cbb8}
+[data-theme="light"] h1{text-shadow:none}
+[data-theme="light"] .sec-title{color:#1D9E75;font-weight:700;border-bottom-color:#d6cbb8}
+[data-theme="light"] .mlabel{font-weight:700}
+[data-theme="light"] .slider-name{color:#1a1a1a;font-weight:700}
+[data-theme="light"] .explain-box p{color:#161616;font-weight:600}
+[data-theme="light"] .acc{color:#2767a8;font-weight:700}
+[data-theme="light"] .acc-y{color:#9c5e00;font-weight:700}
+[data-theme="light"] .acc-g{color:#147a59;font-weight:700}
+[data-theme="light"] .acc-p{color:#5b2d80;font-weight:700}
+[data-theme="light"] .btn-sm{color:#1a1a1a;font-weight:700}
+[data-theme="light"] .btn-sm-util:hover{box-shadow:none;background:#e8f5ee}
+[data-theme="light"] .mat-btn.active{color:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg0);color:var(--text);font-family:var(--font);
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:14px 18px 24px;gap:11px;min-height:100vh;transition:background .3s,color .3s}
+header{display:flex;align-items:baseline;gap:10px;width:100%;position:relative}
+.fric-icon{width:24px;height:24px;color:var(--yellow);flex-shrink:0;display:inline-flex}
+.fric-icon svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+[data-theme="light"] .fric-icon{color:#c07800}
+h1{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;
+  letter-spacing:.20em;color:var(--green);text-transform:uppercase}
+.subtitle{font-size:10px;color:var(--dim);letter-spacing:.12em}
+.header-btns{position:absolute;right:0;top:0;display:flex;gap:8px}
+.hbtn{font-family:var(--font);font-size:10px;
+  color:var(--dim);background:var(--bg2);border:1px solid var(--border);
+  padding:7px 12px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:var(--tr)}
+.hbtn:hover{color:var(--green);border-color:var(--green)}
+[data-theme="light"] .hbtn{color:#1a1a1a;font-weight:700}
+[data-theme="light"] .hbtn:hover{background:#e8f5ee}
+.main-row{display:flex;gap:10px;align-items:flex-start;width:100%;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.col1{width:380px}
+.col2{width:750px}
+.col3{width:262px}
+canvas{display:block;border:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+.box{background:var(--bg1);border:1px solid var(--border);padding:11px 12px;
+  display:flex;flex-direction:column;gap:8px}
+[data-theme="light"] .box{background:#fdfaf4}
+.sec-title{font-size:11px;letter-spacing:.22em;color:var(--green);
+  text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:5px}
+.mat-sel{width:100%;font-family:var(--font);font-size:12px;font-weight:bold;background:var(--bg3);
+  color:var(--cyan);border:1px solid var(--border);padding:7px 8px;cursor:pointer;border-radius:2px;margin-top:4px}
+.slider-block{display:flex;flex-direction:column;gap:5px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline}
+.slider-name{font-size:10px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+.slider-name .var, .mlabel .var, .sec-title .var, .meas-table th .var, .meas-table td .var{text-transform:none}
+.slider-val{font-family:'Courier New',monospace;font-weight:bold;font-size:14px;color:var(--cyan);font-style:normal}
+.slider-val.locked{color:var(--dim)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:3px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:15px;height:15px;border-radius:50%;background:var(--green);cursor:pointer;border:none}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
+  background:var(--green);cursor:pointer;border:none}
+input[type=range]:disabled{opacity:.35;cursor:not-allowed}
+input[type=range]:disabled::-webkit-slider-thumb{background:var(--dim)}
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.meter{background:var(--bg3);border:1px solid var(--border);padding:7px 9px;border-radius:2px}
+.mlabel{font-size:9px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+.mval{font-family:'Courier New',monospace;font-weight:bold;font-size:16px;color:var(--cyan);margin-top:2px;line-height:1.15}
+.mval small{font-size:12px;color:var(--dim);font-weight:bold}
+.mval.state-static{color:var(--green)}
+.mval.state-moving{color:var(--yellow)}
+.mval.state-end{color:var(--grav)}
+.btn-sm{font-family:var(--font);font-size:10px;letter-spacing:.08em;border:1px solid var(--border);
+  background:var(--bg3);color:var(--dim);padding:7px 8px;cursor:pointer;
+  text-transform:uppercase;transition:var(--tr);user-select:none}
+.btn-sm:hover{color:var(--green);border-color:var(--green);box-shadow:0 0 8px var(--green)}
+.btn-sm:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm:disabled:hover{color:var(--dim);border-color:var(--border);box-shadow:none}
+[data-theme="light"] .btn-sm:hover{box-shadow:none;background:#e8f5ee}
+.btn-sm.on{color:var(--green);border-color:var(--green)}
+.btn-sm.primary{color:var(--green);border-color:var(--green);font-weight:bold}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.explain-box p{font-size:11px;color:var(--text);line-height:1.65;letter-spacing:.02em}
+.explain-box p+p{margin-top:6px}
+.acc{color:var(--cyan);font-weight:bold}
+.acc-y{color:var(--yellow);font-weight:bold}
+.acc-g{color:var(--green);font-weight:bold}
+.acc-p{color:var(--grav);font-weight:bold}
+.footer{font-size:9px;color:var(--dim);letter-spacing:.06em;margin-top:4px;width:100%;text-align:right}
+.hint-p{font-size:10px;color:var(--text);line-height:1.5;letter-spacing:.01em;margin-bottom:2px}
+[data-theme="light"] .hint-p{color:#161616;font-weight:600}
+.meas-table{width:100%;border-collapse:collapse;font-family:'Courier New',monospace;font-size:11px;margin-top:2px}
+.meas-table th{font-size:10px;letter-spacing:.04em;color:var(--dim);
+  border-bottom:1px solid var(--border);padding:3px 4px;text-align:right}
+.meas-table th:first-child{text-align:center;width:22px}
+.meas-table th:last-child{width:20px}
+.meas-table td{padding:3px 4px;text-align:right;color:var(--text);font-weight:bold;border-bottom:1px solid var(--bg3)}
+.meas-table td:first-child{text-align:center;color:var(--dim);font-weight:normal}
+[data-theme="light"] .meas-table td{color:#161616}
+.meas-del{cursor:pointer;color:var(--dim);font-weight:bold;padding:0 3px}
+.meas-del:hover{color:var(--yellow)}
+.meas-empty{font-size:10px;color:var(--dim);font-style:italic;padding:6px 2px;text-align:center}
+.meas-status{font-size:10px;line-height:1.4;min-height:14px;padding:2px 0;letter-spacing:.01em}
+.meas-status.ok{color:var(--green);font-weight:bold}
+.meas-status.warn{color:var(--yellow);font-weight:bold}
+[data-theme="light"] .meas-status.ok{color:#147a4f}
+[data-theme="light"] .meas-status.warn{color:#9c5e00}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg0)}
+::-webkit-scrollbar-thumb{background:var(--border)}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="fric-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+    <rect x="3" y="11" width="9" height="7"/>
+    <path d="M14 14.5h6m-2.5-2.5l2.5 2.5-2.5 2.5"/>
+    <path d="M2 20h20"/>
+    <path d="M3 22l1-2M7 22l1-2M11 22l1-2M15 22l1-2M19 22l1-2"/>
+  </svg></span>
+  <h1>Gnidning &mdash; Lod over trisse</h1>
+  <span class="subtitle">BESTEM &mu;<sub>d</sub> FRA ACCELERATION</span>
+  <div class="header-btns">
+    <button class="hbtn" id="copyBtn" onclick="copyCode()">&#10697; Kopier kode</button>
+    <button class="hbtn" id="themeBtn" onclick="toggleTheme()">&#9790; M&oslash;rk tilstand</button>
+  </div>
+</header>
+
+<div class="main-row">
+
+  <div class="col col1">
+    <canvas id="graph" width="380" height="460"></canvas>
+    <div class="box">
+      <div class="sec-title">Styring</div>
+      <div class="btn-grid">
+        <button class="btn-sm primary" id="slipBtn" onclick="slipWeight()">&#9658; Slip loddet</button>
+        <button class="btn-sm" onclick="resetSim()">&#8634; Nulstil</button>
+      </div>
+    </div>
+    <div class="box">
+      <div class="sec-title">M&aring;leserie &mdash; (<span class="var">m</span><sub>1</sub>, <span class="var">m</span><sub>2</sub>, <span class="var">a</span>)</div>
+      <p class="hint-p">Slip loddet. N&aring;r det rammer gulvet, beregnes accelerationen <i>a</i> ved et line&aelig;rt fit af <i>v</i>(<i>t</i>). Tryk <b>Registr&eacute;r</b> for at gemme m&aring;lingen.</p>
+      <div class="btn-grid">
+        <button class="btn-sm" id="recBtn" onclick="recordMeasurement()" disabled>&#43; Registr&eacute;r</button>
+        <button class="btn-sm" onclick="exportCSV()">&#8595; Eksport CSV</button>
+      </div>
+      <div class="meas-status" id="recStatus"></div>
+      <table class="meas-table" id="measTable">
+        <thead><tr><th>#</th><th>m<sub>1</sub> (kg)</th><th>m<sub>2</sub> (kg)</th><th>a (m/s&sup2;)</th><th></th></tr></thead>
+        <tbody id="measBody"></tbody>
+      </table>
+      <div class="meas-empty" id="measEmpty">Ingen m&aring;linger endnu.</div>
+      <button class="btn-sm" style="width:100%" onclick="clearMeasurements()">Ryd tabel</button>
+    </div>
+  </div>
+
+  <div class="col col2">
+    <canvas id="anim" width="750" height="580"></canvas>
+    <div class="box explain-box" id="explainBox"></div>
+  </div>
+
+  <div class="col col3">
+    <div class="box">
+      <div class="sec-title">Materialepar</div>
+      <select class="mat-sel" id="matSel" onchange="selectMat(this.value)">
+        <option value="wood-wood">Tr&aelig; mod tr&aelig;</option>
+        <option value="wood-metal">Tr&aelig; mod metal</option>
+        <option value="steel-al">St&aring;l mod aluminium</option>
+        <option value="steel-ice">St&aring;l mod is</option>
+        <option value="tire-dry">Bild&aelig;k mod t&oslash;r asfalt</option>
+        <option value="tire-wet">Bild&aelig;k mod v&aring;d asfalt</option>
+        <option value="tire-ice">Bild&aelig;k mod isbelagt asfalt</option>
+        <option value="race-dry">Racerd&aelig;k mod t&oslash;r asfalt</option>
+      </select>
+    </div>
+
+    <div class="box">
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name"><span class="var">m</span><sub>1</sub> (klods)</span>
+          <span class="slider-val" id="m1Val">2,0 kg</span>
+        </div>
+        <input type="range" id="m1Slider" min="0.5" max="5" step="0.1" value="2">
+      </div>
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name"><span class="var">m</span><sub>2</sub> (lod)</span>
+          <span class="slider-val" id="m2Val">1,5 kg</span>
+        </div>
+        <input type="range" id="m2Slider" min="0.1" max="8" step="0.1" value="1.5">
+      </div>
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name"><span class="var">&mu;</span><sub>s</sub> (statisk)</span>
+          <span class="slider-val" id="msVal">0,55</span>
+        </div>
+        <input type="range" id="msSlider" min="0.02" max="1.5" step="0.01" value="0.55">
+      </div>
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name"><span class="var">&mu;</span><sub>d</sub> (dynamisk)</span>
+          <span class="slider-val" id="mdVal">0,30</span>
+        </div>
+        <input type="range" id="mdSlider" min="0.02" max="1.5" step="0.01" value="0.30">
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="sec-title">M&aring;linger</div>
+      <div class="meters">
+        <div class="meter"><div class="mlabel"><span class="var">F<sub>N</sub></span></div><div class="mval" id="mFn">19,6 <small>N</small></div></div>
+        <div class="meter"><div class="mlabel"><span class="var">m<sub>2</sub>&middot;g</span></div><div class="mval" id="mFg2">14,7 <small>N</small></div></div>
+        <div class="meter"><div class="mlabel"><span class="var">&mu;<sub>s</sub>&middot;F<sub>N</sub></span></div><div class="mval" id="mFmax">10,8 <small>N</small></div></div>
+        <div class="meter"><div class="mlabel"><span class="var">F<sub>snor</sub></span></div><div class="mval" id="mFsnor">0,0 <small>N</small></div></div>
+        <div class="meter"><div class="mlabel"><span class="var">F<sub>gnid</sub></span></div><div class="mval" id="mFgnid">0,0 <small>N</small></div></div>
+        <div class="meter"><div class="mlabel">Acceleration</div><div class="mval" id="mA">0,00 <small>m/s&sup2;</small></div></div>
+        <div class="meter"><div class="mlabel">Hastighed</div><div class="mval" id="mV">0,00 <small>m/s</small></div></div>
+        <div class="meter"><div class="mlabel">Tilstand</div><div class="mval state-static" id="mState" style="font-size:12px">HVILE</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">Gunnar Gunnarsson &middot; 2026</div>
+
+<script>
+'use strict';
+
+/* ============== MATERIALEDATA ============== */
+const MATERIALS = {
+  'wood-wood':  {label:'Tr\u00e6 mod tr\u00e6',                mus:0.55, mud:0.30, blockColor:'#c08850', blockStroke:'#5a3820', topColor:'#caa06a', kind:'wood'},
+  'wood-metal': {label:'Tr\u00e6 mod metal',                  mus:0.60, mud:0.35, blockColor:'#c08850', blockStroke:'#5a3820', topColor:'#b8bcc4', kind:'wood'},
+  'steel-al':   {label:'St\u00e5l mod aluminium',             mus:0.60, mud:0.50, blockColor:'#8a9098', blockStroke:'#3a4048', topColor:'#c2c6cc', kind:'metal'},
+  'steel-ice':  {label:'St\u00e5l mod is',                    mus:0.20, mud:0.03, blockColor:'#8a9098', blockStroke:'#3a4048', topColor:'#cce8f5', kind:'metal'},
+  'tire-dry':   {label:'Bild\u00e6k mod t\u00f8r asfalt',     mus:0.95, mud:0.80, blockColor:'#2a2a2a', blockStroke:'#000000', topColor:'#555a5e', kind:'tire'},
+  'tire-wet':   {label:'Bild\u00e6k mod v\u00e5d asfalt',     mus:0.65, mud:0.50, blockColor:'#2a2a2a', blockStroke:'#000000', topColor:'#454c54', kind:'tire'},
+  'tire-ice':   {label:'Bild\u00e6k mod isbelagt asfalt',     mus:0.12, mud:0.08, blockColor:'#2a2a2a', blockStroke:'#000000', topColor:'#8aa6b4', kind:'tire'},
+  'race-dry':   {label:'Racerd\u00e6k mod t\u00f8r asfalt',   mus:1.40, mud:1.15, blockColor:'#1a1a1a', blockStroke:'#000000', topColor:'#555a5e', kind:'tire'},
+};
+
+/* ============== GEOMETRI ============== */
+const ANIM_W = 750, ANIM_H = 580;
+const GRAPH_W = 380, GRAPH_H = 460;
+
+const TABLE_TOP_Y = 180;    // bordpladens overflade
+const SLAB_BOT    = 210;
+const FLOOR_Y     = 560;    // gulvets y-koordinat
+const LEG_BOT     = FLOOR_Y;// bordbenene g\u00e5r helt ned til gulvet
+const TABLE_LEFT  = 70;
+const TABLE_RIGHT = 690;
+const TABLE_LEN_M = 2.0;
+const PX_PER_M    = (TABLE_RIGHT - TABLE_LEFT) / TABLE_LEN_M;  // 310
+
+const PULLEY_CX = 706;
+const PULLEY_CY = 164;      // s\u00e5 toppen af trissen ligger ved attach_y=150
+const PULLEY_R  = 14;
+const STRING_Y  = 150;      // FAST h\u00f8jde p\u00e5 vandret snor mellem klods og trisse
+
+const WEIGHT_CX     = PULLEY_CX + PULLEY_R;   // 720 — lodets x-centrum
+const WEIGHT_TOP_0  = 200;                    // lodets top i pre-slip
+
+const FBD_SCALE  = 2.0;     // px pr. newton
+const TIME_SCALE = 0.5;     // sim-tid pr. wall-tid (animationen k\u00f8rer halv hastighed)
+
+// M\u00e5leusikkerheder p\u00e5 v og s i samples (svarer til realistisk photogate-st\u00f8j)
+const NOISE_V = 0.08;       // m/s
+const NOISE_S = 0.005;      // m
+
+/* ============== STATE ============== */
+const S = {
+  matKey: 'wood-wood',
+  mus: 0.55, mud: 0.30,
+  m1: 2.0, m2: 1.5,
+  g: 9.82,
+
+  // simulationsflags
+  slipped: false,            // er Slip-knappen trykket?
+  atFloor: false,            // er loddet ramt gulvet?
+
+  // kinematik
+  t: 0,
+  x0: TABLE_LEFT + 8,        // klodsens start (venstre kant)
+  x:  TABLE_LEFT + 8,
+  v:  0,                     // m/s
+  s:  0,                     // tilbagelagt stræk (m), = klodsens forskydning = loddets fald
+
+  // kraft-aflæsninger
+  Fnor:  0,                  // snorkraft (N)
+  Ffric: 0,                  // gnidningskraft (N)
+  aCurr: 0,                  // aktuel acceleration (m/s²)
+
+  // måling / fit
+  fitSamples: [],            // [{t, v}] under kørslen
+  fitResult:  null,          // {slope, intercept} efter atFloor
+  pendingMeasurement: null,  // {m1, m2, a}
+  measurements: [],          // gemte målinger
+
+  // friktionsstøj (lille fluktuation på μ_d → realistisk spredning på a)
+  muNoise: 0,
+  muNoiseTarget: 0,
+  lastNoiseUpdate: 0,
+  noiseSigma: 0.05,          // 5 % std på μ_d_eff
+
+  // trisse-rotation (visuel)
+  pulleyAngle: 0,
+
+  // master loop-flag
+  running: true,
+};
+
+/* ============== DOM ============== */
+const $ = (id) => document.getElementById(id);
+const animCv  = $('anim'),  animCtx  = animCv.getContext('2d');
+const graphCv = $('graph'), graphCtx = graphCv.getContext('2d');
+const m1Slider = $('m1Slider'), m2Slider = $('m2Slider');
+const msSlider = $('msSlider'), mdSlider = $('mdSlider');
+
+/* ============== HELPERS ============== */
+function fmtN(v, dec=1) { return v.toFixed(dec).replace('.', ','); }
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function contrastText(col) {
+  let r, g, b;
+  col = col.trim();
+  const rgb = col.match(/rgba?\(([^)]+)\)/);
+  if (rgb) {
+    const p = rgb[1].split(',').map(s => parseFloat(s));
+    r = p[0]; g = p[1]; b = p[2];
+  } else {
+    let hex = col.replace('#','');
+    if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
+    r = parseInt(hex.slice(0,2),16); g = parseInt(hex.slice(2,4),16); b = parseInt(hex.slice(4,6),16);
+  }
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return lum > 0.55 ? '#141414' : '#ffffff';
+}
+function gaussianRandom() {
+  // Box-Muller — én gauss-værdi pr. kald
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+function willMove() {
+  // Forudsiger om systemet sætter i bevægelse ved slip
+  return S.m2 * S.g > S.mus * S.m1 * S.g + 1e-6;
+}
+
+/* ============== MATERIAL SELECT ============== */
+function selectMat(key) {
+  S.matKey = key;
+  const mat = MATERIALS[key];
+  S.mus = mat.mus; S.mud = mat.mud;
+  msSlider.value = mat.mus; mdSlider.value = mat.mud;
+  $('matSel').value = key;
+  if (!S.slipped) updateSlipButton();
+  updateLabels();
+}
+
+msSlider.addEventListener('input', () => {
+  S.mus = parseFloat(msSlider.value);
+  if (S.mud > S.mus) { S.mud = S.mus; mdSlider.value = S.mus; }
+  if (!S.slipped) updateSlipButton();
+  updateLabels();
+});
+mdSlider.addEventListener('input', () => {
+  S.mud = parseFloat(mdSlider.value);
+  if (S.mud > S.mus) { S.mus = S.mud; msSlider.value = S.mud; }
+  updateLabels();
+});
+m1Slider.addEventListener('input', () => {
+  S.m1 = parseFloat(m1Slider.value);
+  if (!S.slipped) updateSlipButton();
+  updateLabels();
+});
+m2Slider.addEventListener('input', () => {
+  S.m2 = parseFloat(m2Slider.value);
+  if (!S.slipped) updateSlipButton();
+  updateLabels();
+});
+
+function updateSlipButton() {
+  $('slipBtn').disabled = !willMove();
+}
+
+/* ============== LABELS / METERS ============== */
+function updateLabels() {
+  $('m1Val').textContent = fmtN(S.m1) + ' kg';
+  $('m2Val').textContent = fmtN(S.m2) + ' kg';
+  $('msVal').textContent = fmtN(S.mus, 2);
+  $('mdVal').textContent = fmtN(S.mud, 2);
+
+  const FN   = S.m1 * S.g;
+  const Fg2  = S.m2 * S.g;
+  const Fmax = S.mus * FN;
+  $('mFn').innerHTML    = fmtN(FN) + ' <small>N</small>';
+  $('mFg2').innerHTML   = fmtN(Fg2) + ' <small>N</small>';
+  $('mFmax').innerHTML  = fmtN(Fmax) + ' <small>N</small>';
+  $('mFsnor').innerHTML = fmtN(S.Fnor) + ' <small>N</small>';
+  $('mFgnid').innerHTML = fmtN(S.Ffric) + ' <small>N</small>';
+  $('mA').innerHTML     = fmtN(S.aCurr, 2) + ' <small>m/s\u00b2</small>';
+  $('mV').innerHTML     = fmtN(S.v, 2) + ' <small>m/s</small>';
+
+  const st = $('mState');
+  if (S.atFloor)        { st.textContent = 'GULV';   st.className = 'mval state-end'; }
+  else if (S.slipped)   { st.textContent = 'GLIDER'; st.className = 'mval state-moving'; }
+  else                  { st.textContent = 'HVILE';  st.className = 'mval state-static'; }
+  st.style.fontSize = '12px';
+
+  updateExplain();
+}
+
+function updateExplain() {
+  const FN   = S.m1 * S.g;
+  const Fg2  = S.m2 * S.g;
+  const Fmax = S.mus * FN;
+  const Fd   = S.mud * FN;
+  let html = '';
+
+  if (S.atFloor) {
+    const fit = S.fitResult;
+    if (fit && fit.slope > 0.05) {
+      html =
+        '<p>Loddet har n&aring;et <span class="acc-p">gulvet</span>. '
+        + 'Et line&aelig;rt fit af <i>v</i>(<i>t</i>) under kørslen giver '
+        + '<span class="acc-g">a = ' + fmtN(fit.slope, 2) + ' m/s\u00b2</span>.</p>'
+        + '<p>Tryk <span class="acc">Registr&eacute;r</span> for at gemme (m<sub>1</sub>, m<sub>2</sub>, a) eller <span class="acc">Nulstil</span> for at k&oslash;re igen.</p>';
+    } else {
+      html = '<p>Loddet er ramt gulvet, men data var ikke nok til et p&aring;lideligt fit. Pr&oslash;v med et tungere lod eller mindre &mu;<sub>d</sub>.</p>';
+    }
+  } else if (S.slipped) {
+    html =
+      '<p>Systemet accelererer. <span class="acc-g">a = (m<sub>2</sub>g &minus; &mu;<sub>d</sub>m<sub>1</sub>g) / (m<sub>1</sub>+m<sub>2</sub>) = ' + fmtN(S.aCurr, 2) + ' m/s\u00b2</span>.</p>'
+      + '<p>Snoren er sp&aelig;ndt: <span class="acc">F<sub>snor</sub> = m<sub>2</sub>(g &minus; a) = m<sub>1</sub>a + &mu;<sub>d</sub>m<sub>1</sub>g = ' + fmtN(S.Fnor) + ' N</span>. '
+      + 'Bem&aelig;rk at F<sub>snor</sub> &lt; m<sub>2</sub>g (' + fmtN(Fg2) + ' N) fordi loddet falder med acceleration.</p>';
+  } else if (!willMove()) {
+    html =
+      '<p><span class="acc-y">Systemet s&aelig;tter ikke i bev&aelig;gelse</span>: m<sub>2</sub>g = ' + fmtN(Fg2) + ' N '
+      + 'er <i>ikke</i> stor nok til at overvinde den maksimale statiske gnidning &mu;<sub>s</sub>F<sub>N</sub> = ' + fmtN(Fmax) + ' N.</p>'
+      + '<p>V&aelig;lg et <span class="acc">tungere lod</span> eller en <span class="acc">lavere &mu;<sub>s</sub></span>, og tryk derefter Slip loddet.</p>';
+  } else {
+    html =
+      '<p>Snoren er sp&aelig;ndt. Loddet h&aelig;nger i ligev&aelig;gt: <span class="acc">F<sub>snor</sub> = m<sub>2</sub>g = ' + fmtN(Fg2) + ' N</span>. '
+      + 'P&aring; klodsen balancerer statisk gnidning det samme tr&aelig;k mod h&oslash;jre.</p>'
+      + '<p>m<sub>2</sub>g (' + fmtN(Fg2) + ' N) <span class="acc-g">overstiger</span> &mu;<sub>s</sub>F<sub>N</sub> (' + fmtN(Fmax) + ' N) &mdash; systemet vil s&aelig;tte i bev&aelig;gelse n&aring;r du trykker <span class="acc">Slip loddet</span>.</p>'
+      + '<p style="font-size:10px;opacity:.85">Antagelser: masseløs sp&aelig;ndt snor, friktionsfri og masseløs trisse. To uafh&aelig;ngige reelle st&oslash;jkilder er indbygget: (i) &mu;<sub>d</sub> fluktuerer 5 % omkring tabelværdien under glidning (fysisk overflade-variation), og (ii) hvert <i>v</i>- og <i>s</i>-sample har en usikkerhed i aflæsning af trissens position. Gentag k&oslash;rslen for at se realistisk spredning p&aring; <i>a</i>.</p>';
+  }
+  $('explainBox').innerHTML = html;
+}
+
+/* ============== FYSIK ============== */
+function step(dt) {
+  if (!S.slipped || S.atFloor) return;
+
+  // Friktionsstøj: glat bånd-begrænset støj på μ_d_eff (korr.tid ≈ 50 ms)
+  if (S.t - S.lastNoiseUpdate >= 0.05) {
+    S.muNoiseTarget = gaussianRandom() * S.noiseSigma;
+    S.lastNoiseUpdate = S.t;
+  }
+  S.muNoise += (S.muNoiseTarget - S.muNoise) * Math.min(1, dt / 0.05);
+
+  const muEff = Math.max(0, S.mud * (1 + S.muNoise));
+  const FN    = S.m1 * S.g;
+  const Ffric = muEff * FN;
+
+  // Koblet system: a = (m2 g − μ_eff m1 g) / (m1 + m2)
+  const a = (S.m2 * S.g - Ffric) / (S.m1 + S.m2);
+  S.aCurr = a;
+  S.Ffric = Ffric;
+  S.Fnor  = S.m1 * a + Ffric;   // = m2 (g − a)
+
+  // Integrér (semi-implicit Euler — eksakt for konstant a, robust under støj)
+  S.v += a * dt;
+  if (S.v < 0) S.v = 0;
+
+  const dx_m  = S.v * dt;
+  const dx_px = dx_m * PX_PER_M;
+  S.x += dx_px;
+  S.s += dx_m;
+  S.t += dt;
+
+  // Trisse-rotation: r_pulley i meter
+  const r_m = PULLEY_R / PX_PER_M;
+  S.pulleyAngle += dx_m / r_m;
+
+  // Sampling sker pr. frame i loop() — ikke pr. sub-step
+
+  // Tjek om loddet rammer gulvet
+  const weightTop = WEIGHT_TOP_0 + S.s * PX_PER_M;
+  const wH = weightSize().h;
+  if (weightTop + wH >= FLOOR_Y) {
+    // Snap s/x s\u00e5 loddet lige ber\u00f8rer gulvet
+    const overshoot_m = (weightTop + wH - FLOOR_Y) / PX_PER_M;
+    S.s -= overshoot_m;
+    S.x -= overshoot_m * PX_PER_M;
+    S.atFloor = true;
+    // BEM\u00c6RK: v nulstilles IKKE her — loop() pusher \u00e9t sidste sample med v_pre_impact
+    // f\u00f8r v nulstilles. Det forhindrer at den endelige (t, v=0) puller fit-slope ned.
+  }
+}
+
+function finalizeRun() {
+  // Brug alle samples — m\u00e5leusikkerheden i NOISE_V g\u00f8r at t=0-samplet ogs\u00e5 har j\u00e6vn fordeling
+  const samples = S.fitSamples;
+  if (samples.length < 8) {
+    $('recStatus').className = 'meas-status warn';
+    $('recStatus').innerHTML = '&#9888; For lidt data til line&aelig;rt fit.';
+    return;
+  }
+  const fit = linearFit(samples);
+  S.fitResult = fit;
+  if (fit.slope > 0.05) {
+    S.pendingMeasurement = { m1: S.m1, m2: S.m2, a: fit.slope };
+    $('recBtn').disabled = false;
+    $('recStatus').className = 'meas-status ok';
+    $('recStatus').innerHTML = '&#10003; M&aring;ling klar: a = ' + fmtN(fit.slope, 2) + ' m/s\u00b2 &mdash; tryk Registr&eacute;r';
+  } else {
+    $('recStatus').className = 'meas-status warn';
+    $('recStatus').innerHTML = '&#9888; Fittet gav ikke pålidelig acceleration.';
+  }
+}
+
+function linearFit(samples) {
+  const n = samples.length;
+  let sT = 0, sV = 0, sTV = 0, sTT = 0;
+  for (const s of samples) { sT += s.t; sV += s.v; sTV += s.t * s.v; sTT += s.t * s.t; }
+  const mT = sT / n, mV = sV / n;
+  const slope     = (sTV - n * mT * mV) / (sTT - n * mT * mT);
+  const intercept = mV - slope * mT;
+  return { slope, intercept };
+}
+
+/* ============== TEGNING ============== */
+function blockSize() {
+  const baseW = 78, baseH = 54;
+  const k = Math.pow(S.m1 / 2.0, 1/3);
+  return { w: baseW * k, h: baseH * k };
+}
+function weightSize() {
+  const baseH = 32;
+  const k = Math.pow(S.m2 / 2.0, 1/3);
+  return { w: 22 * k, h: baseH * k };
+}
+
+function drawTable(ctx) {
+  const mat = MATERIALS[S.matKey];
+  const slabTop = TABLE_TOP_Y;
+  const slabH = SLAB_BOT - slabTop;
+  ctx.fillStyle = 'rgba(0,0,0,0.10)';
+  ctx.fillRect(TABLE_LEFT+4, SLAB_BOT, TABLE_RIGHT-TABLE_LEFT, 4);
+  ctx.fillStyle = mat.topColor;
+  ctx.fillRect(TABLE_LEFT, slabTop, TABLE_RIGHT - TABLE_LEFT, slabH);
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.fillRect(TABLE_LEFT, slabTop, TABLE_RIGHT - TABLE_LEFT, 3);
+  ctx.strokeStyle = mat.blockStroke;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(TABLE_LEFT, slabTop, TABLE_RIGHT - TABLE_LEFT, slabH);
+
+  const legW = 16, legInset = 26;
+  ctx.fillStyle = mat.topColor;
+  for (const lx of [TABLE_LEFT + legInset, TABLE_RIGHT - legInset - legW]) {
+    ctx.fillRect(lx, SLAB_BOT, legW, LEG_BOT - SLAB_BOT);
+    ctx.strokeRect(lx, SLAB_BOT, legW, LEG_BOT - SLAB_BOT);
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.fillRect(lx + legW - 4, SLAB_BOT, 4, LEG_BOT - SLAB_BOT);
+    ctx.fillStyle = mat.topColor;
+  }
+
+  drawRuler(ctx, slabTop);
+}
+
+function drawRuler(ctx, slabTop) {
+  const ink = contrastText(MATERIALS[S.matKey].topColor);
+  ctx.strokeStyle = ink; ctx.fillStyle = ink;
+  ctx.lineWidth = 1.3;
+  ctx.font = 'bold 11px Courier New';
+  ctx.textAlign = 'center';
+  const step = 0.25;
+  for (let d = 0; d <= TABLE_LEN_M + 1e-6; d += step) {
+    const x = TABLE_LEFT + d * PX_PER_M;
+    const whole = Math.abs(d - Math.round(d)) < 0.01;
+    const half  = Math.abs((d*2) - Math.round(d*2)) < 0.01;
+    const h = whole ? 12 : (half ? 8 : 5);
+    ctx.beginPath(); ctx.moveTo(x, slabTop + 1); ctx.lineTo(x, slabTop + 1 + h); ctx.stroke();
+    if (whole) ctx.fillText(fmtN(d, 1) + ' m', x, slabTop + 24);
+  }
+}
+
+function drawBlock(ctx, x) {
+  const mat = MATERIALS[S.matKey];
+  const sz = blockSize();
+  const by = TABLE_TOP_Y - sz.h;
+  ctx.fillStyle = 'rgba(0,0,0,0.16)';
+  ctx.beginPath();
+  ctx.ellipse(x + sz.w/2, TABLE_TOP_Y - 1, sz.w/2 + 3, 3, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = mat.blockColor;
+  ctx.strokeStyle = mat.blockStroke;
+  ctx.lineWidth = 2;
+  ctx.fillRect(x, by, sz.w, sz.h);
+  ctx.strokeRect(x, by, sz.w, sz.h);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x, by, sz.w, sz.h); ctx.clip();
+  if (mat.kind === 'wood') {
+    ctx.strokeStyle = 'rgba(60,30,10,0.30)'; ctx.lineWidth = 1;
+    for (let i = 1; i <= 2; i++) {
+      const yy = by + (sz.h/3)*i;
+      ctx.beginPath(); ctx.moveTo(x+3, yy); ctx.lineTo(x+sz.w-3, yy); ctx.stroke();
+    }
+  } else if (mat.kind === 'metal') {
+    ctx.fillStyle = mat.blockStroke;
+    for (const px of [x+9, x+sz.w-9]) for (const py of [by+9, by+sz.h-9]) {
+      ctx.beginPath(); ctx.arc(px, py, 2.4, 0, Math.PI*2); ctx.fill();
+    }
+  } else if (mat.kind === 'tire') {
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 5; i++) {
+      const xx = x + 7 + i * (sz.w-14)/4;
+      ctx.beginPath(); ctx.moveTo(xx, by+4); ctx.lineTo(xx, by+sz.h-4); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawPulley(ctx) {
+  // Beslag fra bordkant op til trisse-akslen
+  ctx.strokeStyle = cssVar('--dim');
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(TABLE_RIGHT - 2, TABLE_TOP_Y);
+  ctx.lineTo(TABLE_RIGHT - 2, PULLEY_CY - PULLEY_R - 4);
+  ctx.lineTo(PULLEY_CX,        PULLEY_CY - PULLEY_R - 4);
+  ctx.lineTo(PULLEY_CX,        PULLEY_CY - PULLEY_R);
+  ctx.stroke();
+
+  // Selve hjulet — ydre cirkel
+  ctx.fillStyle   = '#8a8e94';
+  ctx.strokeStyle = '#2a2a2e';
+  ctx.lineWidth   = 1.5;
+  ctx.beginPath();
+  ctx.arc(PULLEY_CX, PULLEY_CY, PULLEY_R, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+
+  // Indre cirkel (nav)
+  ctx.fillStyle = '#c8ccd2';
+  ctx.beginPath();
+  ctx.arc(PULLEY_CX, PULLEY_CY, PULLEY_R - 5, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Eger der roterer (4 stk.)
+  ctx.strokeStyle = '#3a3a3e'; ctx.lineWidth = 1.6;
+  for (let i = 0; i < 4; i++) {
+    const a = S.pulleyAngle + i * Math.PI / 2;
+    const r0 = 2, r1 = PULLEY_R - 5;
+    ctx.beginPath();
+    ctx.moveTo(PULLEY_CX + Math.cos(a) * r0, PULLEY_CY + Math.sin(a) * r0);
+    ctx.lineTo(PULLEY_CX + Math.cos(a) * r1, PULLEY_CY + Math.sin(a) * r1);
+    ctx.stroke();
+  }
+
+  // Centerakse
+  ctx.fillStyle = '#222';
+  ctx.beginPath();
+  ctx.arc(PULLEY_CX, PULLEY_CY, 2.2, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawString(ctx, blockX) {
+  const sz = blockSize();
+  const attachY = STRING_Y;          // FAST h\u00f8jde — sikrer altid vandret snor
+  const x1 = blockX + sz.w;
+
+  ctx.strokeStyle = cssVar('--text');
+  ctx.lineWidth = 1.6;
+
+  // Segment 1: vandret fra klods til toppen af trissen (STRING_Y = PULLEY_CY - PULLEY_R)
+  ctx.beginPath();
+  ctx.moveTo(x1, attachY);
+  ctx.lineTo(PULLEY_CX, PULLEY_CY - PULLEY_R);
+  ctx.stroke();
+
+  // Snor over hjulet (kvart cirkel: top → højre)
+  ctx.beginPath();
+  ctx.arc(PULLEY_CX, PULLEY_CY, PULLEY_R, -Math.PI/2, 0, false);
+  ctx.stroke();
+
+  // Segment 2: lodret ned til lodet
+  const weightTopY = WEIGHT_TOP_0 + S.s * PX_PER_M;
+  ctx.beginPath();
+  ctx.moveTo(PULLEY_CX + PULLEY_R, PULLEY_CY);
+  ctx.lineTo(PULLEY_CX + PULLEY_R, weightTopY);
+  ctx.stroke();
+
+  // Knude ved klods
+  ctx.fillStyle = cssVar('--text');
+  ctx.beginPath();
+  ctx.arc(x1, attachY, 2.4, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawWeight(ctx) {
+  const sz = weightSize();
+  const cx = WEIGHT_CX;
+  const top = WEIGHT_TOP_0 + S.s * PX_PER_M;
+  const left = cx - sz.w / 2;
+
+  // Krog ovenpå (mellem snor og lod)
+  ctx.strokeStyle = '#3a3a3e';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.arc(cx, top - 3, 2.6, 0, Math.PI*2);
+  ctx.stroke();
+
+  // Selve lodet — afrundet rektangel
+  const r = Math.min(sz.w / 2, 5);
+  ctx.fillStyle = '#5a5e64';
+  ctx.strokeStyle = '#1a1a1e';
+  ctx.lineWidth = 1.4;
+  roundedRect(ctx, left, top, sz.w, sz.h, r);
+  ctx.fill();
+  ctx.stroke();
+
+  // Diskret horisontal stribe (lab-vægt-look)
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(left + 2, top + sz.h * 0.35);
+  ctx.lineTo(left + sz.w - 2, top + sz.h * 0.35);
+  ctx.stroke();
+
+  if (sz.h > 16) {
+    ctx.fillStyle = '#e0e0e6';
+    ctx.font = 'bold 10px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('m\u2082', cx, top + sz.h / 2 + 3);
+  }
+}
+
+function roundedRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+function drawFloor(ctx) {
+  // Vandret linje
+  ctx.strokeStyle = cssVar('--text');
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(20, FLOOR_Y);
+  ctx.lineTo(ANIM_W - 20, FLOOR_Y);
+  ctx.stroke();
+
+  // Diskret skraveringsmønster
+  ctx.strokeStyle = cssVar('--dim');
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.55;
+  for (let x = 26; x < ANIM_W - 22; x += 10) {
+    ctx.beginPath();
+    ctx.moveTo(x, FLOOR_Y);
+    ctx.lineTo(x - 7, FLOOR_Y + 8);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color, lineW=3, headLen=10) {
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = lineW;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  const ang = Math.atan2(y2 - y1, x2 - x1);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - headLen * Math.cos(ang - 0.4), y2 - headLen * Math.sin(ang - 0.4));
+  ctx.lineTo(x2 - headLen * Math.cos(ang + 0.4), y2 - headLen * Math.sin(ang + 0.4));
+  ctx.closePath(); ctx.fill();
+}
+function labelChip(ctx, cx, cy, text, color) {
+  ctx.font = 'bold 12px Courier New';
+  const w = ctx.measureText(text).width;
+  let bx = cx - w/2 - 5;
+  bx = Math.max(3, Math.min(bx, ANIM_W - w - 13));
+  const by = cy - 12;
+  ctx.fillStyle = color;
+  ctx.fillRect(bx, by, w + 10, 18);
+  ctx.fillStyle = contrastText(color);
+  ctx.textAlign = 'left';
+  ctx.fillText(text, bx + 5, cy + 1.5);
+}
+
+// Pre-slip statiske krafter (snoren er spændt selv før slip)
+function preSlipForces() {
+  const FN = S.m1 * S.g;
+  const Fg2 = S.m2 * S.g;
+  const Fmax = S.mus * FN;
+  // F_snor på klods = m2 g (i pre-slip, snor i ligevægt med lodets vægt)
+  const Fsnor = Fg2;
+  // F_gnid på klods = statisk gnidning der balancerer F_snor, op til Fmax
+  const Fgnid = Math.min(Fsnor, Fmax);
+  return { Fsnor, Fgnid };
+}
+
+function drawBlockFBD(ctx, x) {
+  const sz = blockSize();
+  const cx = x + sz.w/2;
+  const cy = TABLE_TOP_Y - sz.h/2;
+  const FN = S.m1 * S.g;
+  const sc = FBD_SCALE;
+
+  let Fsnor, Fgnid;
+  if (S.atFloor) { Fsnor = 0; Fgnid = 0; }
+  else if (S.slipped) { Fsnor = S.Fnor; Fgnid = S.Ffric; }
+  else { const p = preSlipForces(); Fsnor = p.Fsnor; Fgnid = p.Fgnid; }
+
+  // Massemidtpunkt
+  ctx.fillStyle = cssVar('--text');
+  ctx.beginPath(); ctx.arc(cx, cy, 2.6, 0, Math.PI*2); ctx.fill();
+
+  // F_N (op) grøn
+  drawArrow(ctx, cx, cy, cx, cy - FN*sc, cssVar('--norm'), 3, 9);
+  labelChip(ctx, cx, Math.max(12, cy - FN*sc - 10), 'F_N = ' + fmtN(FN) + ' N', cssVar('--norm'));
+
+  // F_tyn (ned) lilla
+  drawArrow(ctx, cx, cy, cx, cy + FN*sc, cssVar('--grav'), 3, 9);
+  // Label placeres i klodsens y-niveau eller lidt under, så det ikke kolliderer med bordet
+  labelChip(ctx, cx, Math.min(TABLE_TOP_Y - 4, cy + FN*sc + 14), 'F_tyn = ' + fmtN(FN) + ' N', cssVar('--grav'));
+
+  // F_snor (højre) cyan
+  if (Fsnor > 0.05) {
+    drawArrow(ctx, cx, cy, cx + Fsnor*sc, cy, cssVar('--pull'), 3.5, 10);
+    labelChip(ctx, cx + Fsnor*sc + 2, cy - 16, 'F_snor = ' + fmtN(Fsnor) + ' N', cssVar('--pull'));
+  }
+  // F_gnid (venstre) gul
+  if (Math.abs(Fgnid) > 0.05) {
+    drawArrow(ctx, cx, cy, cx - Fgnid*sc, cy, cssVar('--fric'), 3.5, 10);
+    labelChip(ctx, cx - Fgnid*sc - 2, cy + 18, 'F_gnid = ' + fmtN(Fgnid) + ' N', cssVar('--fric'));
+  }
+}
+
+function drawWeightFBD(ctx) {
+  // Skip helt n\u00e5r loddet hviler p\u00e5 gulvet — N fra gulvet ville balancere F_tyn,
+  // og pilen ville under alle omst\u00e6ndigheder st\u00f8de ind i gulvet visuelt.
+  if (S.atFloor) return;
+
+  const sz = weightSize();
+  const cx = WEIGHT_CX;
+  const top = WEIGHT_TOP_0 + S.s * PX_PER_M;
+  const cy = top + sz.h/2;
+  const Fg2 = S.m2 * S.g;
+  const sc = FBD_SCALE;
+
+  const Fsnor = S.slipped ? S.Fnor : Fg2;
+
+  // Centrum-markør
+  ctx.fillStyle = cssVar('--text');
+  ctx.beginPath(); ctx.arc(cx, cy, 2.4, 0, Math.PI*2); ctx.fill();
+
+  // F_snor op (cyan) — tegnes med lille x-offset så pilen ikke ligger oven på snoren
+  if (Fsnor > 0.05) {
+    const ox = -8;
+    drawArrow(ctx, cx + ox, cy, cx + ox, cy - Fsnor*sc, cssVar('--pull'), 3, 9);
+    labelChip(ctx, cx - 38, Math.max(28, cy - Fsnor*sc - 10), 'F_snor = ' + fmtN(Fsnor) + ' N', cssVar('--pull'));
+  }
+  // F_tyn ned (lilla) — klippes ved gulvet hvis pilen ville st\u00f8de igennem
+  const ox2 = 8;
+  const arrowEndY = Math.min(cy + Fg2*sc, FLOOR_Y - 4);
+  if (arrowEndY > cy + 8) {
+    drawArrow(ctx, cx + ox2, cy, cx + ox2, arrowEndY, cssVar('--grav'), 3, 9);
+  }
+  const labelY = Math.min(FLOOR_Y - 14, cy + Fg2*sc + 14);
+  labelChip(ctx, cx + 46, labelY, 'F_tyn = ' + fmtN(Fg2) + ' N', cssVar('--grav'));
+}
+
+function drawAnim() {
+  const ctx = animCtx;
+  ctx.clearRect(0, 0, ANIM_W, ANIM_H);
+  ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+  ctx.fillStyle = cssVar('--bg2');
+  ctx.fillRect(0, 0, ANIM_W, ANIM_H);
+
+  // Overskrifter
+  ctx.fillStyle = cssVar('--text');
+  ctx.font = 'bold 12px Courier New';
+  ctx.textAlign = 'left';
+  ctx.fillText('MATERIALE: ' + MATERIALS[S.matKey].label.toUpperCase(), 10, 17);
+  ctx.fillText('\u03bc_s = ' + fmtN(S.mus, 2) + '    \u03bc_d = ' + fmtN(S.mud, 2), 10, 33);
+
+  // Hastighedsvisning
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 12px Courier New';
+  if (S.slipped && !S.atFloor) { ctx.fillStyle = cssVar('--fric'); ctx.fillText('v = ' + fmtN(S.v, 2) + ' m/s', ANIM_W - 10, 17); }
+  else if (S.atFloor)          { ctx.fillStyle = cssVar('--grav'); ctx.fillText('LODDET P\u00c5 GULV', ANIM_W - 10, 17); }
+  else                         { ctx.fillStyle = cssVar('--norm'); ctx.fillText('KLAR — TRYK SLIP', ANIM_W - 10, 17); }
+
+  drawTable(ctx);
+  drawPulley(ctx);
+  drawBlock(ctx, S.x);
+  drawString(ctx, S.x);
+  drawWeight(ctx);
+  drawFloor(ctx);
+  drawBlockFBD(ctx, S.x);
+  drawWeightFBD(ctx);
+}
+
+/* ============== GRAF (s(t) over v(t)) ============== */
+function drawGraph() {
+  const ctx = graphCtx;
+  ctx.clearRect(0, 0, GRAPH_W, GRAPH_H);
+  ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+  ctx.fillStyle = cssVar('--bg2');
+  ctx.fillRect(0, 0, GRAPH_W, GRAPH_H);
+
+  const T_MAX = 1.5;   // s
+  const S_MAX = 1.6;   // m
+  const V_MAX = 6.0;   // m/s
+
+  drawPanel(ctx, 0,   220, 's(t) — STR\u00c6KNING', 'Str\u00e6kning s (m)', S_MAX, 'pull',
+            (p) => p.s);
+  drawPanel(ctx, 240, 220, 'v(t) — HASTIGHED',     'Hastighed v (m/s)',   V_MAX, 'fric',
+            (p) => p.v, true);
+
+  function drawPanel(ctx, yTop, height, title, yLabel, yMax, colorVar, getY, withFit=false) {
+    const pad = {l: 50, r: 14, t: 26, b: 38};
+    const W = GRAPH_W;
+    const pw = W - pad.l - pad.r;
+    const ph = height - pad.t - pad.b;
+    const pxL = pad.l;
+    const pyT = yTop + pad.t;
+
+    // Titel
+    ctx.fillStyle = cssVar('--green');
+    ctx.font = 'bold 11px Courier New';
+    ctx.textAlign = 'left';
+    ctx.fillText(title, pad.l, yTop + 14);
+
+    // Akse-rammer
+    ctx.strokeStyle = cssVar('--dim'); ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pxL, pyT); ctx.lineTo(pxL, pyT + ph);
+    ctx.lineTo(pxL + pw, pyT + ph);
+    ctx.stroke();
+
+    // Y-akse ticks
+    const yTickStep = niceTick(yMax / 5);
+    ctx.font = 'bold 11px Courier New';
+    for (let v = 0; v <= yMax + 1e-6; v += yTickStep) {
+      const py = pyT + ph - (v / yMax) * ph;
+      ctx.strokeStyle = (v === 0) ? cssVar('--dim') : cssVar('--border');
+      ctx.beginPath(); ctx.moveTo(pxL, py); ctx.lineTo(pxL + pw, py); ctx.stroke();
+      ctx.fillStyle = cssVar('--text');
+      ctx.textAlign = 'right';
+      ctx.fillText(fmtN(v, v < 1 ? 2 : 1), pxL - 5, py + 3);
+    }
+    // Y-akse etiket
+    ctx.save();
+    ctx.translate(12, pyT + ph/2); ctx.rotate(-Math.PI/2);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = cssVar('--text');
+    ctx.font = 'bold 10px Courier New';
+    ctx.fillText(yLabel, 0, 0);
+    ctx.restore();
+
+    // X-akse ticks
+    ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
+    const tStep = 0.5;
+    for (let t = 0; t <= T_MAX + 1e-6; t += tStep) {
+      const px = pxL + (t / T_MAX) * pw;
+      ctx.strokeStyle = cssVar('--border');
+      ctx.beginPath(); ctx.moveTo(px, pyT); ctx.lineTo(px, pyT + ph); ctx.stroke();
+      ctx.fillStyle = cssVar('--text');
+      ctx.fillText(fmtN(t, 1), px, pyT + ph + 14);
+    }
+    ctx.fillStyle = cssVar('--text'); ctx.fillText('tid (s)', pxL + pw/2, pyT + ph + 30);
+
+    // Datakurve
+    if (S.fitSamples.length >= 2) {
+      ctx.strokeStyle = cssVar('--' + colorVar); ctx.lineWidth = 2.4;
+      ctx.beginPath(); let started = false;
+      for (const p of S.fitSamples) {
+        if (p.t > T_MAX) break;
+        const xVal = p.t;
+        const yVal = getY(p);
+        if (yVal > yMax) continue;
+        const px = pxL + (xVal / T_MAX) * pw;
+        const py = pyT + ph - (yVal / yMax) * ph;
+        if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+
+    // Lineært fit på v(t) (kun nederste panel når atFloor)
+    if (withFit && S.atFloor && S.fitResult) {
+      const fit = S.fitResult;
+      // Tegn fit-linje fra t=0 til min(T_MAX, sidste sample)
+      const tEnd = Math.min(T_MAX, S.fitSamples.length ? S.fitSamples[S.fitSamples.length-1].t : T_MAX);
+      const v0 = fit.intercept;
+      const v1 = fit.intercept + fit.slope * tEnd;
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = cssVar('--green'); ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(pxL + 0,                       pyT + ph - Math.min(Math.max(v0,0)/yMax, 1) * ph);
+      ctx.lineTo(pxL + (tEnd / T_MAX) * pw,     pyT + ph - Math.min(Math.max(v1,0)/yMax, 1) * ph);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // a-værdi annotation
+      ctx.fillStyle = cssVar('--green');
+      ctx.font = 'bold 11px Courier New';
+      ctx.textAlign = 'right';
+      ctx.fillText('a = ' + fmtN(fit.slope, 2) + ' m/s\u00b2', pxL + pw - 4, pyT + 14);
+    }
+  }
+}
+
+function niceTick(raw) {
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / pow;
+  let mult;
+  if (n < 1.5) mult = 1; else if (n < 3.5) mult = 2; else if (n < 7.5) mult = 5; else mult = 10;
+  return mult * pow;
+}
+
+/* ============== STYRING ============== */
+function slipWeight() {
+  if (S.slipped || S.atFloor) return;
+  if (!willMove()) {
+    $('recStatus').className = 'meas-status warn';
+    $('recStatus').innerHTML = '&#9888; Systemet er i hvile &mdash; m<sub>2</sub>g overstiger ikke &mu;<sub>s</sub>F<sub>N</sub>.';
+    return;
+  }
+  S.slipped = true;
+  S.t = 0;
+  S.fitSamples = [];
+  S.fitResult = null;
+  S.pendingMeasurement = null;
+  S.muNoise = 0; S.muNoiseTarget = 0; S.lastNoiseUpdate = 0;
+  $('slipBtn').disabled = true;
+  $('recBtn').disabled = true;
+  $('recStatus').className = 'meas-status';
+  $('recStatus').textContent = '';
+}
+
+function resetSim() {
+  S.t = 0;
+  S.slipped = false;
+  S.atFloor = false;
+  S.v = 0;
+  S.s = 0;
+  S.x = S.x0;
+  S.aCurr = 0;
+  S.Ffric = 0;
+  S.Fnor  = 0;
+  S.fitSamples = [];
+  S.fitResult = null;
+  S.pendingMeasurement = null;
+  S.pulleyAngle = 0;
+  S.muNoise = 0; S.muNoiseTarget = 0; S.lastNoiseUpdate = 0;
+  updateSlipButton();
+  $('recBtn').disabled = true;
+  $('recStatus').className = 'meas-status';
+  $('recStatus').textContent = '';
+  updateLabels();
+}
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = (cur === 'light') ? '' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  $('themeBtn').innerHTML = (next === 'light') ? '&#9790; M\u00f8rk tilstand' : '&#9728; Lys tilstand';
+}
+
+function copyCode() {
+  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  navigator.clipboard.writeText(html).then(() => {
+    const btn = $('copyBtn'); const orig = btn.innerHTML;
+    btn.innerHTML = '\u2713 Kopieret';
+    setTimeout(() => { btn.innerHTML = orig; }, 1400);
+  });
+}
+
+/* ============== MÅLESERIE ============== */
+function recordMeasurement() {
+  if (!S.pendingMeasurement) return;
+  S.measurements.push({ ...S.pendingMeasurement });
+  S.pendingMeasurement = null;
+  $('recBtn').disabled = true;
+  $('recStatus').className = 'meas-status';
+  $('recStatus').textContent = '';
+  renderMeasurements();
+}
+function deleteMeasurement(i) {
+  S.measurements.splice(i, 1);
+  renderMeasurements();
+}
+function clearMeasurements() {
+  S.measurements = [];
+  renderMeasurements();
+}
+function renderMeasurements() {
+  const body = $('measBody');
+  body.innerHTML = '';
+  S.measurements.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + (i + 1) + '</td>'
+      + '<td>' + fmtN(row.m1, 2) + '</td>'
+      + '<td>' + fmtN(row.m2, 2) + '</td>'
+      + '<td>' + fmtN(row.a, 2) + '</td>'
+      + '<td><span class="meas-del" onclick="deleteMeasurement(' + i + ')">&times;</span></td>';
+    body.appendChild(tr);
+  });
+  $('measEmpty').style.display = S.measurements.length ? 'none' : 'block';
+}
+function exportCSV() {
+  if (!S.measurements.length) { alert('Ingen m\u00e5linger at eksportere endnu.'); return; }
+  // dansk decimalkomma + semikolon som separator
+  let csv = 'm1 (kg);m2 (kg);a (m/s^2)\r\n';
+  for (const row of S.measurements) {
+    csv += fmtN(row.m1, 3) + ';' + fmtN(row.m2, 3) + ';' + fmtN(row.a, 3) + '\r\n';
+  }
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'gnidning_lod_maaleserie.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ============== HOVEDLOOP ============== */
+function pushSample() {
+  // Tilf\u00f8jer m\u00e5leusikkerhed til v og s for at give synlig spredning p\u00e5 graferne.
+  // Den underliggende fysik er ren; det er kun samples der har st\u00f8j (svarer til photogate-aflæsning).
+  const v_meas = S.v + gaussianRandom() * NOISE_V;
+  const s_meas = S.s + gaussianRandom() * NOISE_S;
+  S.fitSamples.push({ t: S.t, v: v_meas, s: s_meas });
+}
+
+let last = performance.now();
+function loop(now) {
+  const dtWall = Math.min(0.05, (now - last) / 1000);
+  last = now;
+
+  if (S.running && S.slipped && !S.atFloor) {
+    // Sample state ved start af denne frame (f\u00f8r vi integrerer)
+    pushSample();
+
+    const subSteps = 4;
+    const sdt = (dtWall * TIME_SCALE) / subSteps;
+    for (let i = 0; i < subSteps; i++) {
+      step(sdt);
+      if (S.atFloor) break;
+    }
+
+    // Hvis loddet netop ramte gulvet: tag ET sidste sample med v_pre_impact
+    // (FØR vi nulstiller v) og k\u00f8r derefter finalize.
+    if (S.atFloor) {
+      pushSample();
+      S.v = 0;
+      S.aCurr = 0;
+      S.Ffric = 0;
+      S.Fnor  = 0;
+      finalizeRun();
+    }
+  }
+
+  updateLabels();
+  drawAnim();
+  drawGraph();
+  requestAnimationFrame(loop);
+}
+
+/* ============== INIT ============== */
+function setupHiDPI(canvas, ctx, cssW, cssH) {
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width  = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function init() {
+  setupHiDPI(animCv,  animCtx,  ANIM_W,  ANIM_H);
+  setupHiDPI(graphCv, graphCtx, GRAPH_W, GRAPH_H);
+  selectMat('wood-wood');
+  renderMeasurements();
+  updateSlipButton();
+  updateLabels();
+  requestAnimationFrame(loop);
+}
+init();
+</script>
+
+</body>
+</html>
