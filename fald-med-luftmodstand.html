@@ -87,11 +87,11 @@
   .param-head .val { font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .val-input {
     font-family: inherit; text-align: right; color: var(--text);
-    background: transparent; border: 1px solid transparent; border-radius: 6px;
-    padding: 1px 5px; width: 100px; cursor: text;
+    background: var(--stat-bg); border: 1px solid var(--card-border); border-radius: 6px;
+    padding: 1px 6px; width: 104px; cursor: text;
   }
-  .val-input:hover { border-color: var(--card-border); }
-  .val-input:focus { outline: none; border-color: var(--blue); background: var(--card); }
+  .val-input:hover { border-color: var(--muted); }
+  .val-input:focus { outline: none; border-color: var(--blue); background: var(--card); box-shadow: 0 0 0 2px rgba(55,138,221,0.18); }
   input[type=range] { width: 100%; accent-color: var(--blue); margin-top: 2px; }
   .ctrl-minmax { display: flex; justify-content: space-between; font-size: 10px; color: var(--faint); margin-top: 1px; }
 
@@ -109,7 +109,14 @@
   .chute-ctrl { flex: 0 0 230px; }
   .chute-ctrl-head { display: flex; justify-content: space-between; font-size: 12px; }
   .chute-ctrl-head .lbl { color: var(--muted); }
-  .chute-ctrl-head .v { font-variant-numeric: tabular-nums; color: var(--text); }
+  .chute-ctrl-head .v { font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--text); }
+  .v-input {
+    font-family: inherit; font-size: 16px; font-weight: 500; text-align: right; color: var(--text);
+    background: var(--stat-bg); border: 1px solid var(--card-border); border-radius: 6px;
+    padding: 1px 6px; width: 62px; cursor: text; font-variant-numeric: tabular-nums;
+  }
+  .v-input:hover { border-color: var(--muted); }
+  .v-input:focus { outline: none; border-color: var(--blue); background: var(--card); box-shadow: 0 0 0 2px rgba(55,138,221,0.18); }
 
   .stat-row { display: flex; gap: 8px; flex: 1 1 440px; min-width: 0; }
   .stat { flex: 1 1 0; min-width: 96px; background: var(--stat-bg); border-radius: 8px; padding: 6px 11px; }
@@ -215,15 +222,15 @@
 <div class="chute-panel">
   <button id="btn-deploy" disabled>🪂 Udløs faldskærm</button>
   <div class="chute-ctrl">
-    <div class="chute-ctrl-head"><span class="lbl">Faldskærmsareal</span><span class="v" id="chute-a-val">20,0 m²</span></div>
+    <div class="chute-ctrl-head"><span class="lbl">Faldskærmsareal</span><span class="v"><input class="v-input" id="chute-a-val" type="text" inputmode="decimal" value="20,0"> m²</span></div>
     <input type="range" min="15" max="25" step="0.5" value="20" id="chute-a-slider">
   </div>
   <div class="chute-ctrl">
-    <div class="chute-ctrl-head"><span class="lbl">Udfoldningstid</span><span class="v" id="inflate-val">0,8 s</span></div>
+    <div class="chute-ctrl-head"><span class="lbl">Udfoldningstid</span><span class="v"><input class="v-input" id="inflate-val" type="text" inputmode="decimal" value="0,8"> s</span></div>
     <input type="range" min="0.2" max="3" step="0.1" value="0.8" id="inflate-slider">
   </div>
   <div class="chute-ctrl">
-    <div class="chute-ctrl-head"><span class="lbl">Tidsskridt dt</span><span class="v" id="dt-val">0,020 s</span></div>
+    <div class="chute-ctrl-head"><span class="lbl">Tidsskridt dt</span><span class="v"><input class="v-input" id="dt-val" type="text" inputmode="decimal" value="0,020"> s</span></div>
     <input type="range" min="0" max="1" step="0.0005" value="0.5" id="dt-slider">
   </div>
   <div class="preset-pick">
@@ -432,7 +439,7 @@ function wireParam(o){
   slider.addEventListener('input', function(){
     o.apply(fromPos());
     if (!editing) input.value = fmt(o.read());
-    clearPresetNote(); onConfigChange();
+    onConfigChange();
   });
   input.addEventListener('focus', function(){ editing = true; input.value = plainNum(o.read()); input.select(); });
   input.addEventListener('input', function(){
@@ -442,7 +449,7 @@ function wireParam(o){
     v = clamp(v);
     o.apply(v);
     slider.value = toPos(v);
-    clearPresetNote(); onConfigChange();
+    onConfigChange();
   });
   input.addEventListener('blur', function(){ editing = false; input.value = fmt(o.read()); });
   input.addEventListener('keydown', function(e){ if (e.key === 'Enter') input.blur(); });
@@ -460,21 +467,44 @@ wireParam({ slider: 'a-slider', input: 'a-val', log: true, min: A_MIN, max: A_MA
 wireParam({ slider: 'm-slider', input: 'm-val', log: true, min: M_MIN, max: M_MAX,
   read: function(){ return m; }, apply: function(v){ m = v; } });
 
-document.getElementById('chute-a-slider').addEventListener('input', function(e){
-  chuteArea = parseFloat(e.target.value);
-  document.getElementById('chute-a-val').textContent = fix(chuteArea, 1) + ' m²';
-});
-document.getElementById('inflate-slider').addEventListener('input', function(e){
-  inflateTime = parseFloat(e.target.value);
-  document.getElementById('inflate-val').textContent = fix(inflateTime, 1) + ' s';
-});
-document.getElementById('dt-slider').addEventListener('input', function(e){
-  dtUser = logVal(parseFloat(e.target.value), DT_MIN, DT_MAX);
-  document.getElementById('dt-val').textContent = fix(dtUser, 3) + ' s';
-});
+/* ── Faldskærm / dt: slider + redigerbart felt bundet sammen ── */
+function wireField(o){
+  var slider = document.getElementById(o.slider);
+  var input = document.getElementById(o.input);
+  var editing = false;
+  function clamp(v){ return Math.min(o.max, Math.max(o.min, v)); }
+  function toPos(v){ return o.log ? logPos(clamp(v), o.min, o.max) : v; }
+  function fromPos(){ return o.log ? logVal(parseFloat(slider.value), o.min, o.max) : parseFloat(slider.value); }
+  function display(){ return fix(o.get(), o.dec); }
+  slider.addEventListener('input', function(){
+    o.set(fromPos());
+    if (!editing) input.value = display();
+    if (o.onchange) o.onchange();
+  });
+  input.addEventListener('focus', function(){ editing = true; input.select(); });
+  input.addEventListener('input', function(){
+    var val = parseFloat(input.value.replace(/\s/g, '').replace(',', '.'));
+    if (isNaN(val)) return;
+    val = clamp(val);
+    o.set(val);
+    slider.value = toPos(val);
+    if (o.onchange) o.onchange();
+  });
+  input.addEventListener('blur', function(){ editing = false; input.value = display(); });
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') input.blur(); });
+  input.value = display();
+  slider.value = toPos(o.get());
+}
+
+wireField({ slider: 'chute-a-slider', input: 'chute-a-val', log: false, min: 15, max: 25, dec: 1,
+  get: function(){ return chuteArea; }, set: function(v){ chuteArea = v; },
+  onchange: function(){ if (chuteActive) refreshTermLabel(); } });
+wireField({ slider: 'inflate-slider', input: 'inflate-val', log: false, min: 0.2, max: 3, dec: 1,
+  get: function(){ return inflateTime; }, set: function(v){ inflateTime = v; } });
+wireField({ slider: 'dt-slider', input: 'dt-val', log: true, min: DT_MIN, max: DT_MAX, dec: 3,
+  get: function(){ return dtUser; }, set: function(v){ dtUser = v; } });
 
 function onConfigChange(){ refreshTermLabel(); updateStats(); updateDeployBtn(); if (!running){ resetCharts(); drawSim(); } }
-function clearPresetNote(){ var s = document.getElementById('preset-select'); if (s) s.value = ''; }
 
 /* ── Presets (dropdown) ── */
 document.getElementById('preset-select').addEventListener('change', function(e){
@@ -860,8 +890,6 @@ function updateCharts(){
 
 /* ── Init ── */
 refreshParams();
-document.getElementById('dt-slider').value = logPos(dtUser, DT_MIN, DT_MAX);
-document.getElementById('dt-val').textContent = fix(dtUser, 3) + ' s';
 refreshTermLabel();
 updateStats();
 drawSim();
