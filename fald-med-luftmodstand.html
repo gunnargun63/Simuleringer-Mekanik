@@ -123,7 +123,8 @@
   .stat-l { font-size: 11px; color: var(--muted); }
   .stat-v { font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
 
-  .btn-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .btn-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .chute-data { margin-left: 8px; color: var(--grav); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
   button { cursor: pointer; background: transparent; border: 1px solid var(--btn-border); border-radius: 8px; padding: 7px 16px; font-size: 13px; color: var(--text); font-family: inherit; transition: background .15s, border-color .15s; }
   button:hover { background: var(--btn-hover); }
   button.active { background: var(--btn-active-bg); color: var(--btn-active-text); border-color: transparent; }
@@ -251,6 +252,7 @@
   <button id="btn-reset">↺ Nulstil</button>
   <button id="btn-vectors" class="active">Vis vektorer</button>
   <button id="btn-guide">? Vejledning</button>
+  <span id="chute-data" class="chute-data"></span>
 </div>
 
 <div class="bottom-row">
@@ -645,15 +647,21 @@ function cssVar(name){ return getComputedStyle(document.documentElement).getProp
 function refreshTermLabel(){
   var tmax = maxTime();
   var el = document.getElementById('vt-label');
+  var chuteEl = document.getElementById('chute-data');
   if (isFreeFall()){
-    el.innerHTML = 'Frit fald (c_W = 0)  ·  t_max = ' + fix(tmax, 1) + ' s';
+    el.innerHTML = 'Frit fald (c<sub>W</sub> = 0)  ·  t_max = ' + fix(tmax, 1) + ' s';
     document.getElementById('stat-vt').textContent = '∞';
+    if (chuteEl) chuteEl.innerHTML = '';
   } else {
     var vt = terminalVel();
-    var base = 'Terminalhastighed: ' + fix(vt, 2) + ' m/s';
-    if (chuteActive) base += '  ·  <span id="chute-status">🪂 Faldskærm c_W 1,4 · A ' + fix(chuteArea, 1) + ' m²</span>';
-    else base += '  ·  t_max ≈ ' + fix(tmax, 1) + ' s';
-    el.innerHTML = base;
+    if (chuteActive){
+      el.innerHTML = '🪂 Faldskærm udløst';
+      if (chuteEl) chuteEl.innerHTML = 'Faldskærmsdata: c<sub>W</sub> = ' + fix(CHUTE_CW, 1) +
+        ', A = ' + fix(chuteArea, 1) + ' m² og Terminalhastighed = ' + fix(vt, 2) + ' m/s';
+    } else {
+      el.innerHTML = 'Terminalhastighed: ' + fix(vt, 2) + ' m/s  ·  t_max ≈ ' + fix(tmax, 1) + ' s';
+      if (chuteEl) chuteEl.innerHTML = '';
+    }
     document.getElementById('stat-vt').textContent = fix(vt, 2) + ' m/s';
   }
 }
